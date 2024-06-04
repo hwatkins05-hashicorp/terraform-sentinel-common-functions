@@ -1,0 +1,206 @@
+# Common functions that use the resources collections
+
+##### Imports #####
+import "tfconfig/v2" as tfconfig
+import "tfplan/v2" as tfplan
+import "tfstate/v2" as tfstate
+import "strings"
+import "types"
+
+##### Functions #####
+
+#### TFCONFIG ####
+
+### find_all_resources ###
+# Find all resources of all types using the tfconfig/v2 import.
+find_all_resources = func() {
+  resources = filter tfconfig.resources as address, r {
+  	r.mode is "managed"
+  }
+
+  return resources
+}
+
+### find_resources_by_type ###
+# Find all resources of a specific type using the tfconfig/v2 import.
+# The parameter, type, should be a string like "aws_instance".
+find_resources_by_type = func(type) {
+  resources = filter tfconfig.resources as address, r {
+  	r.type is type and
+  	r.mode is "managed"
+  }
+
+  return resources
+}
+
+### find_resources_in_module ###
+# Find all resources from a specific module using the tfconfig/v2 import.
+find_resources_in_module = func(module_address) {
+  resources = filter tfconfig.resources as address, r {
+  	r.module_address is module_address and
+  	r.mode is "managed"
+  }
+
+  return resources
+}
+
+### find_resources_by_provider ###
+# Find all resources from a specific provider using the tfconfig/v2 import.
+# The parameter, provider, should be given as a string such as "aws".
+find_resources_by_provider = func(provider) {
+  resources = filter tfconfig.resources as address, r {
+  	r.provider_config_key matches "(.*:)?" + provider + "(\\..*)?" and
+  	r.mode is "managed"
+  }
+
+  return resources
+}
+
+### find_all_datasources ###
+# Find all data sources of all types using the tfconfig/v2 import.
+find_all_datasources = func() {
+  datasources = filter tfconfig.resources as address, d {
+  	d.mode is "data"
+  }
+
+  return datasources
+}
+
+### find_datasources_by_type ###
+# Find all data sources of a specific type using the tfconfig/v2 import.
+# The parameter, type, should be a string like "aws_ami".
+find_datasources_by_type = func(type) {
+  datasources = filter tfconfig.resources as address, d {
+  	d.type is type and
+  	d.mode is "data"
+  }
+
+  return datasources
+}
+
+### find_datasources_in_module ###
+# Find all data sources from a specific module using the tfconfig/v2 import.
+find_datasources_in_module = func(module_address) {
+  datasources = filter tfconfig.resources as address, d {
+  	d.module_address is module_address and
+  	d.mode is "data"
+  }
+
+  return datasources
+}
+
+### find_datasources_by_provider ###
+# Find all data sources from a specific provider using the tfconfig/v2 import.
+# The parameter, provider, should be given as a string such as "aws".
+find_datasources_by_provider = func(provider) {
+  datasources = filter tfconfig.resources as address, d {
+  	d.provider_config_key matches "(.*:)?" + provider + "(\\..*)?" and
+  	d.mode is "data"
+  }
+
+  return datasources
+}
+
+#### TFSTATE ####
+
+### find_resources ###
+# Find all resources of a specific type using the tfstate/v2 import.
+find_resources = func(type) {
+  resources = filter tfstate.resources as address, r {
+  	r.type is type and
+  	r.mode is "managed"
+  }
+
+  return resources
+}
+
+### find_resources_by_provider ###
+# Find all resources for a specific provider using the tfstate/v2 import.
+# Terraform 0.12 and earlier set `r.provider_name` to short text like "null";
+# but Terraform 0.13 and higher set it to something like
+# "registry.terraform.io/hashicorp/null".
+# You can pass in the long form or short form.
+find_resources_by_provider = func(provider) {
+  parsed_provider = strings.split(provider, "/")
+  segment_count = length(parsed_provider)
+  v = strings.split(tfstate.terraform_version, ".")
+  v_major = int(v[1])
+
+  # If v_major is 12, we know short form was passed to Sentinel
+  if v_major is 12 {
+    resources = filter tfstate.resources as address, r {
+      r.provider_name is provider and
+    	r.mode is "managed"
+    }
+  } else {
+    # v_major must be higher than 12 since v2 imports being used
+    # So, we know long form like "registry.terraform.io/hashicorp/null" given
+    if segment_count is 1 {
+      # Function was passed short form, so we want to reduce each occurence of
+      # r.provider_name to its short form.
+      resources = filter tfstate.resources as address, r {
+        strings.split(r.provider_name, "/")[2] is provider and
+      	r.mode is "managed"
+      }
+    } else {
+      # Function was passed long form, so we use full r.provider_name
+      resources = filter tfstate.resources as address, r {
+        r.provider_name is provider and
+      	r.mode is "managed"
+      }
+    } // end segment_count
+  } // end v_major
+
+  return resources
+}
+
+### find_datasources ###
+# Find all data sources of a specific type using the tfstate/v2 import.
+find_datasources = func(type) {
+  datasources = filter tfstate.resources as address, d {
+  	d.type is type and
+  	d.mode is "data"
+  }
+
+  return datasources
+}
+
+### find_datasources_by_provider ###
+# Find all data sources for a specific provider using the tfstate/v2 import.
+# Terraform 0.12 and earlier set `r.provider_name` to short text like "null";
+# but Terraform 0.13 and higher set it to something like
+# "registry.terraform.io/hashicorp/null".
+# You can pass in the long form or short form.
+find_datasources_by_provider = func(provider) {
+  parsed_provider = strings.split(provider, "/")
+  segment_count = length(parsed_provider)
+  v = strings.split(tfstate.terraform_version, ".")
+  v_major = int(v[1])
+
+  # If v_major is 12, we know short form was passed to Sentinel
+  if v_major is 12 {
+    datasources = filter tfstate.resources as address, r {
+      r.provider_name is provider and
+    	r.mode is "data"
+    }
+  } else {
+    # v_major must be higher than 12 since v2 imports being used
+    # So, we know long form like "registry.terraform.io/hashicorp/null" given
+    if segment_count is 1 {
+      # Function was passed short form, so we want to reduce each occurence of
+      # r.provider_name to its short form.
+      datasources = filter tfstate.resources as address, r {
+        strings.split(r.provider_name, "/")[2] is provider and
+      	r.mode is "data"
+      }
+    } else {
+      # Function was passed long form, so we use full r.provider_name
+      datasources = filter tfstate.resources as address, r {
+        r.provider_name is provider and
+      	r.mode is "data"
+      }
+    } // end segment_count
+  } // end v_major
+
+  return datasources
+}

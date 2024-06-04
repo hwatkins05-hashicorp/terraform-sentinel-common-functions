@@ -1,0 +1,38 @@
+# Common functions that use the outputs collections
+
+##### Imports #####
+import "tfconfig/v2" as tfconfig
+import "tfplan/v2" as tfplan
+import "tfstate/v2" as tfstate
+import "strings"
+import "types"
+
+##### Functions #####
+
+
+### find_all_outputs ###
+# Find all outputs using the tfconfig/v2 import.
+find_all_outputs = func() {
+  return tfconfig.outputs
+}
+
+### find_outputs_in_module ###
+# Find all providers from a specific module using the tfconfig/v2 import.
+find_outputs_in_module = func(module_address) {
+  outputs = filter tfconfig.outputs as address, o {
+  	o.module_address is module_address
+  }
+
+  return outputs
+}
+
+### find_outputs_by_sensitivity ###
+# Find all providers of specific sensitivity using the tfconfig/v2 import.
+# The parameter, sensitive, should be true or false (without quotes)
+find_outputs_by_sensitivity = func(sensitive) {
+  outputs = filter tfconfig.outputs as address, o {
+  	o.sensitive is sensitive
+  }
+
+  return outputs
+}

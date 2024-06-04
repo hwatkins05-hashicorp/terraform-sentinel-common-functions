@@ -1,0 +1,37 @@
+# Common functions that use the provisioners collections
+
+##### Imports #####
+import "tfconfig/v2" as tfconfig
+import "tfplan/v2" as tfplan
+import "tfstate/v2" as tfstate
+import "strings"
+import "types"
+
+##### Functions #####
+
+### find_all_providers ###
+# Find all providers using the tfconfig/v2 import.
+find_all_providers = func() {
+  return tfconfig.providers
+}
+
+### find_providers_by_type ###
+# Find all providers of a specific type using the tfconfig/v2 import.
+# The parameter, provider, should be given as a string such as "aws".
+find_providers_by_type = func(type) {
+  providers = filter tfconfig.providers as address, p {
+  	p.provider_config_key matches "(.*:)?" + type + "(\\..*)?"
+  }
+
+  return providers
+}
+
+### find_providers_in_module ###
+# Find all providers from a specific module using the tfconfig/v2 import.
+find_providers_in_module = func(module_address) {
+  providers = filter tfconfig.providers as address, p {
+  	p.module_address is module_address
+  }
+
+  return providers
+}
