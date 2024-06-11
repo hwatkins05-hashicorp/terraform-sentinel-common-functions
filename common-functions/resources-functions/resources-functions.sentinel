@@ -11,9 +11,9 @@ import "types"
 
 #### TFCONFIG ####
 
-### find_all_resources ###
+### all_resources ###
 # Find all resources of all types using the tfconfig/v2 import.
-find_all_resources = func() {
+func all_resources() {
   resources = filter tfconfig.resources as address, r {
   	r.mode is "managed"
   }
@@ -21,10 +21,10 @@ find_all_resources = func() {
   return resources
 }
 
-### find_resources_by_type ###
+### resources_by_type ###
 # Find all resources of a specific type using the tfconfig/v2 import.
 # The parameter, type, should be a string like "aws_instance".
-find_resources_by_type = func(type) {
+func resources_by_type(type) {
   resources = filter tfconfig.resources as address, r {
   	r.type is type and
   	r.mode is "managed"
@@ -33,9 +33,9 @@ find_resources_by_type = func(type) {
   return resources
 }
 
-### find_resources_in_module ###
+### resources_in_module ###
 # Find all resources from a specific module using the tfconfig/v2 import.
-find_resources_in_module = func(module_address) {
+func resources_in_module(module_address) {
   resources = filter tfconfig.resources as address, r {
   	r.module_address is module_address and
   	r.mode is "managed"
@@ -44,10 +44,10 @@ find_resources_in_module = func(module_address) {
   return resources
 }
 
-### find_resources_by_provider ###
+### resources_by_provider ###
 # Find all resources from a specific provider using the tfconfig/v2 import.
 # The parameter, provider, should be given as a string such as "aws".
-find_resources_by_provider = func(provider) {
+func resources_by_provider(provider) {
   resources = filter tfconfig.resources as address, r {
   	r.provider_config_key matches "(.*:)?" + provider + "(\\..*)?" and
   	r.mode is "managed"
@@ -56,9 +56,9 @@ find_resources_by_provider = func(provider) {
   return resources
 }
 
-### find_all_datasources ###
+### all_datasources ###
 # Find all data sources of all types using the tfconfig/v2 import.
-find_all_datasources = func() {
+func all_datasources() {
   datasources = filter tfconfig.resources as address, d {
   	d.mode is "data"
   }
@@ -66,10 +66,10 @@ find_all_datasources = func() {
   return datasources
 }
 
-### find_datasources_by_type ###
+### datasources_by_type ###
 # Find all data sources of a specific type using the tfconfig/v2 import.
 # The parameter, type, should be a string like "aws_ami".
-find_datasources_by_type = func(type) {
+func datasources_by_type(type) {
   datasources = filter tfconfig.resources as address, d {
   	d.type is type and
   	d.mode is "data"
@@ -78,9 +78,9 @@ find_datasources_by_type = func(type) {
   return datasources
 }
 
-### find_datasources_in_module ###
+### datasources_in_module ###
 # Find all data sources from a specific module using the tfconfig/v2 import.
-find_datasources_in_module = func(module_address) {
+func datasources_in_module(module_address) {
   datasources = filter tfconfig.resources as address, d {
   	d.module_address is module_address and
   	d.mode is "data"
@@ -89,10 +89,10 @@ find_datasources_in_module = func(module_address) {
   return datasources
 }
 
-### find_datasources_by_provider ###
+### datasources_by_provider ###
 # Find all data sources from a specific provider using the tfconfig/v2 import.
 # The parameter, provider, should be given as a string such as "aws".
-find_datasources_by_provider = func(provider) {
+func datasources_by_provider(provider) {
   datasources = filter tfconfig.resources as address, d {
   	d.provider_config_key matches "(.*:)?" + provider + "(\\..*)?" and
   	d.mode is "data"
@@ -103,9 +103,9 @@ find_datasources_by_provider = func(provider) {
 
 #### TFSTATE ####
 
-### find_resources ###
+### resources ###
 # Find all resources of a specific type using the tfstate/v2 import.
-find_resources = func(type) {
+func resources(type) {
   resources = filter tfstate.resources as address, r {
   	r.type is type and
   	r.mode is "managed"
@@ -114,13 +114,13 @@ find_resources = func(type) {
   return resources
 }
 
-### find_resources_by_provider ###
+### resources_by_provider ###
 # Find all resources for a specific provider using the tfstate/v2 import.
 # Terraform 0.12 and earlier set `r.provider_name` to short text like "null";
 # but Terraform 0.13 and higher set it to something like
 # "registry.terraform.io/hashicorp/null".
 # You can pass in the long form or short form.
-find_resources_by_provider = func(provider) {
+func resources_by_provider(provider) {
   parsed_provider = strings.split(provider, "/")
   segment_count = length(parsed_provider)
   v = strings.split(tfstate.terraform_version, ".")
@@ -154,9 +154,9 @@ find_resources_by_provider = func(provider) {
   return resources
 }
 
-### find_datasources ###
+### datasources ###
 # Find all data sources of a specific type using the tfstate/v2 import.
-find_datasources = func(type) {
+func datasources(type) {
   datasources = filter tfstate.resources as address, d {
   	d.type is type and
   	d.mode is "data"
@@ -165,13 +165,13 @@ find_datasources = func(type) {
   return datasources
 }
 
-### find_datasources_by_provider ###
+### datasources_by_provider ###
 # Find all data sources for a specific provider using the tfstate/v2 import.
 # Terraform 0.12 and earlier set `r.provider_name` to short text like "null";
 # but Terraform 0.13 and higher set it to something like
 # "registry.terraform.io/hashicorp/null".
 # You can pass in the long form or short form.
-find_datasources_by_provider = func(provider) {
+func datasources_by_provider(provider) {
   parsed_provider = strings.split(provider, "/")
   segment_count = length(parsed_provider)
   v = strings.split(tfstate.terraform_version, ".")

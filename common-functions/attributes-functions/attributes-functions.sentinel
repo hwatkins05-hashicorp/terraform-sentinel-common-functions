@@ -15,7 +15,7 @@ import "types"
 # we do special processing for attributes with form "config.x"
 # `item` is the item with the attribute
 # `attribute` is the attribute
-evaluate_attribute = func(item, attribute) {
+func evaluate_attribute(item, attribute) {
   # Split the attribute into a list, using "." as the separator
   attributes = strings.split(attribute, ".")
   if length(attributes) > 2 {
@@ -40,13 +40,13 @@ evaluate_attribute = func(item, attribute) {
   }
 }
 
-### filter_attribute_not_in_list ###
+### attribute_not_in_list ###
 # Filter a list of items such as providers to those with a specified
 # attribute (attr) that is not in a given list of allowed values (allowed).
 # The parameter, attr, can only be a top-level attribute of the collection, items.
 # Set prtmsg to `true` (without quotes) if you want to print violation messages.
 # If you want to disallow null, include "null" in the list (forbidden).
-filter_attribute_not_in_list = func(items, attr, allowed, prtmsg) {
+func attribute_not_in_list(items, attr, allowed, prtmsg) {
   violators = {}
   messages = {}
 
@@ -96,13 +96,13 @@ filter_attribute_not_in_list = func(items, attr, allowed, prtmsg) {
   return {"items":violators,"messages":messages}
 }
 
-### filter_attribute_in_list ###
+### attribute_in_list ###
 # Filter a list of items such as providers to those with a specified
 # attribute (attr) that is in a given list of forbidden values (forbidden).
 # The parameter, attr, can only be a top-level attribute of the collection, items.
 # Set prtmsg to `true` (without quotes) if you want to print violation messages.
 # If you want to disallow null, include "null" in the list (forbidden).
-filter_attribute_in_list = func(items, attr, forbidden, prtmsg) {
+func attribute_in_list(items, attr, forbidden, prtmsg) {
   violators = {}
   messages = {}
 
@@ -153,13 +153,13 @@ filter_attribute_in_list = func(items, attr, forbidden, prtmsg) {
   return {"items":violators,"messages":messages}
 }
 
-### filter_attribute_does_not_match_regex ###
+### attribute_does_not_match_regex ###
 # Filter a list of items such as resources to those with a specified
 # attribute (attr) that does not match a regular expression (expr).
 # The parameter, attr, can only be a top-level attribute of items or
 # an attribute in the form "config.x".
 # Set prtmsg to `true` (without quotes) if you want to print violation messages.
-filter_attribute_does_not_match_regex = func(items, attr, expr, prtmsg) {
+func attribute_does_not_match_regex(items, attr, expr, prtmsg) {
   violators = {}
 	messages = {}
   for items as index, item {
@@ -214,14 +214,14 @@ filter_attribute_does_not_match_regex = func(items, attr, expr, prtmsg) {
   return {"items":violators,"messages":messages}
 }
 
-### filter_attribute_matches_regex ###
+### attribute_matches_regex ###
 # Filter a list of items such as resources to those with a specified
 # attribute (attr) that matches a regular expression (expr).
 # The parameter, attr, can only be a top-level attribute of items or
 # an attribute in the form "config.x".
 # Set prtmsg to `true` (without quotes) if you want to print violation messages.
 # If you want to match null, set expr to "null".
-filter_attribute_matches_regex = func(items, attr, expr, prtmsg) {
+func attribute_matches_regex(items, attr, expr, prtmsg) {
   violators = {}
 	messages = {}
   for items as index, item {

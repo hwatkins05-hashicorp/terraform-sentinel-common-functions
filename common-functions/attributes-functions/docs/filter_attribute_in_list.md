@@ -1,4 +1,4 @@
-# [filter_attribute_in_list](../tfconfig-functions.sentinel#L376)
+# [attribute_in_list](../tfconfig-functions.sentinel#L376)
 This function filters a collection of items such as providers, provisioners, resources, data sources, variables, outputs, or module calls to those with a top-level attribute that is contained in a provided list. A policy would call it when it wants the attribute to not have a value from the list.
 
 This function is intended to examine metadata of various Terraform objects within a Terraform configuration. It cannot be used to examine the values of attributes of resources or data sources. Use the filter functions of the tfplan-functions or tfstate-functions modules for that.
@@ -7,7 +7,7 @@ This function is intended to examine metadata of various Terraform objects withi
 This function is contained in the [tfconfig-functions.sentinel](../../tfconfig-functions.sentinel) module.
 
 ## Declaration
-`filter_attribute_in_list = func(items, attr, forbidden, prtmsg)`
+func `attribute_in_list(items, attr, forbidden, prtmsg)`
 
 ## Arguments
 * **items**: a map of items such as providers, provisioners, resources, data sources, variables, outputs, or module calls.
@@ -27,13 +27,13 @@ This function prints the violation messages if the parameter, `prtmsg`, was set 
 ## Examples
 Here are some examples of calling this function, assuming that the tfconfig-functions.sentinel file that contains it has been imported with the alias `config`:
 ```
-violatingProviders = config.filter_attribute_in_list(allProviders,
+violatingProviders = config.attribute_in_list(allProviders,
                      "name", prohibited_list, false)
 
-violatingResources = config.filter_attribute_in_list(allResources,
+violatingResources = config.attribute_in_list(allResources,
                      "type", prohibited_list, false)
 
-violatingProvisioners = config.filter_attribute_in_list(allProvisioners,
+violatingProvisioners = config.attribute_in_list(allProvisioners,
                      "type", prohibited_list, false)
 ```
 

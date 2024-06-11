@@ -7,7 +7,7 @@ It calls itself recursively, incrementing the `page` parameter by one until ther
 This function is contained in the [registry-functions.sentinel](../registry-functions.sentinel) module.
 
 ## Declaration
-`get_recent_module_versions_by_page = func(address, organization, token,
+func `get_recent_module_versions_by_page(address, organization, token,
                                            registry, version_limit, page)`
 
 ## Arguments
@@ -30,7 +30,7 @@ This function does not print anything.
 ## Example
 Here is an example of calling this function:
 ```
-get_recent_module_versions = func(address, organization, token,
+func get_recent_module_versions(address, organization, token,
                                   registry, version_limit) {
   return get_recent_module_versions_by_page(address, organization, token,
                                     registry, version_limit, 1)

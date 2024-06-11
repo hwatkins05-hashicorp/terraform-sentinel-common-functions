@@ -9,20 +9,20 @@ import "types"
 
 ##### Functions #####
 
-### find_all_module_calls ###
+### all_module_calls ###
 # Find all module calls using the tfconfig/v2 import.
-find_all_module_calls = func() {
+func all_module_calls() {
   return tfconfig.module_calls
 }
 
-### find_module_calls_in_module ###
+### module_calls_in_module ###
 # Find all direct module calls made from a specific module
 # using the tfconfig/v2 import.
 # The parameter, module_address, should be "" for the root module,
 # "module.A" for a module A called by the root module,
 # "module.A.module.B" for module B called by module A called by the root module,
 # and so on.
-find_module_calls_in_module = func(module_address) {
+func module_calls_in_module(module_address) {
   module_calls = filter tfconfig.module_calls as address, mc {
   	mc.module_address is module_address
   }
@@ -30,15 +30,15 @@ find_module_calls_in_module = func(module_address) {
   return module_calls
 }
 
-### find_descendant_modules ###
+### descendant_modules ###
 # Find addresses of all modules called directly or indirectly by a module.
 # The provided module address is included.
-# To find all module addresses, call find_descendant_modules("")
-# After calling this function against "", you can call find_module_calls_in_module
+# To find all module addresses, call descendant_modules("")
+# After calling this function against "", you can call module_calls_in_module
 # against any item in the list that is returned.
-find_descendant_modules = func(module_address) {
+func descendant_modules(module_address) {
   module_addresses = [module_address]
-  mcs = find_module_calls_in_module(module_address)
+  mcs = module_calls_in_module(module_address)
   if length(mcs) > 0 {
     for mcs as ma, mc {
       if mc.module_address is "" {
@@ -46,7 +46,7 @@ find_descendant_modules = func(module_address) {
       } else {
         new_module_address = mc.module_address + ".module." + mc.name
       }
-      module_addresses += find_descendant_modules(new_module_address)
+      module_addresses += descendant_modules(new_module_address)
     }
   }
   return module_addresses
@@ -61,7 +61,7 @@ find_descendant_modules = func(module_address) {
 # does not give you the source the module labeled "B".
 # But if you want to limit creation of resources to specific modules based on
 # their source, you need the module source.  This function computes it.
-get_module_source = func(module_address) {
+func get_module_source(module_address) {
   # Check for root module
   if module_address is "" {
     return "root"
@@ -99,7 +99,7 @@ get_module_source = func(module_address) {
 # But if you want to limit creation of resources to specific modules based on
 # their source, you need the module source.  This function computes it for
 # the first ancestor module that is not a local module.
-get_ancestor_module_source = func(module_address) {
+func get_ancestor_module_source(module_address) {
   # Check for root module
   if module_address is "" {
     return "root"
@@ -135,7 +135,7 @@ get_ancestor_module_source = func(module_address) {
 ### get_parent_module_address ###
 # Get the address of the parent module of a module from the module address
 # return "root" if the given module_address is "" (the root module).
-get_parent_module_address = func(module_address) {
+func get_parent_module_address(module_address) {
   # Check for root module
   if module_address is "" {
     return "root"

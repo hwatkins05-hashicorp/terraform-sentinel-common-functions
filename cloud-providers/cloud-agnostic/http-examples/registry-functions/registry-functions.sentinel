@@ -17,7 +17,7 @@ import "version"
 # This function calls `get_recent_module_versions_by_page` (which has the same
 # arguments plus `page`) one or more times, depending on whether there are more
 # than one page of modules.
-get_recent_module_versions = func(address, organization, token,
+func get_recent_module_versions(address, organization, token,
                                   registry, version_limit) {
   return get_recent_module_versions_by_page(address, organization, token,
                                     registry, version_limit, 1)
@@ -27,7 +27,7 @@ get_recent_module_versions = func(address, organization, token,
 # Get recent versions for private or public modules from private module registry
 # one page at a time.
 # This uses the same arguments as `get_recent_module_versions` plus `page`
-get_recent_module_versions_by_page = func(address, organization, token,
+func get_recent_module_versions_by_page(address, organization, token,
                                   registry, version_limit, page) {
 
   # Build request to send to Registry Modules API

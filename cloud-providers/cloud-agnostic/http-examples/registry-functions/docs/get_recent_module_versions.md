@@ -5,7 +5,7 @@ This function gets recent versions for private or public modules from a private 
 This function is contained in the [registry-functions.sentinel](../registry-functions.sentinel) module.
 
 ## Declaration
-`get_recent_module_versions = func(address, organization, token,
+func `get_recent_module_versions(address, organization, token,
                                    registry, version_limit)`
 
 ## Arguments

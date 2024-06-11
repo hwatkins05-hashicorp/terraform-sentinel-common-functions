@@ -17,7 +17,7 @@ import "types"
 # If the result of a filter function is assigned to a map like violatingIRs,
 # then you should pass violatingIRs["message"] as the first argument.
 # The prefix argument is printed before the message of each resource.
-print_violations = func(messages, prefix) {
+func print_violations(messages, prefix) {
   for messages as address, message {
     print(prefix, message)
   }
@@ -28,7 +28,7 @@ print_violations = func(messages, prefix) {
 # Convert objects of unknown type to string
 # It is used to build messages added to the messages map returned by the
 # filter functions
-to_string = func(obj) {
+func to_string(obj) {
   case types.type_of(obj) {
     when "string":
       return obj

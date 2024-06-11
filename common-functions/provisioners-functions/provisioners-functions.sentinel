@@ -9,16 +9,16 @@ import "types"
 
 ##### Functions #####
 
-### find_all_provisioners ###
+### all_provisioners ###
 # Find all provisioners using the tfconfig/v2 import.
-find_all_provisioners = func() {
+func all_provisioners() {
   return tfconfig.provisioners
 }
 
-### find_provisioners_by_type ###
+### provisioners_by_type ###
 # Find all provisioners of a specific type using the tfconfig/v2 import.
 # The parameter, type, should be a string like "local_exec".
-find_provisioners_by_type = func(type) {
+func provisioners_by_type(type) {
   provisioners = filter tfconfig.provisioners as address, p {
   	p.type is type
   }

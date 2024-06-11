@@ -1,4 +1,4 @@
-# [filter_attribute_matches_regex](../tfconfig-functions.sentinel#L494)
+# [attribute_matches_regex](../tfconfig-functions.sentinel#L494)
 This function filters a collection of items such as resources, data sources, or blocks to those with an attribute that matches a given regular expression (regex). A policy would call it when it wants the attribute to not match that regex. The attribute must either be a top-level attribute or an attribute directly under "config".
 
 It uses the Sentinel [matches](https://docs.hashicorp.com/sentinel/language/spec/#matches-operator) operator which uses [RE2](https://github.com/google/re2/wiki/Syntax) regex.
@@ -7,7 +7,7 @@ It uses the Sentinel [matches](https://docs.hashicorp.com/sentinel/language/spec
 This function is contained in the [tfconfig-functions.sentinel](../tfconfig-functions.sentinel) module.
 
 ## Declaration
-`filter_attribute_matches_regex = func(items, attr, expr, prtmsg)`
+func `attribute_matches_regex(items, attr, expr, prtmsg)`
 
 ## Arguments
 * **items**: a map of items such as providers, provisioners, resources, data sources, variables, outputs, or module calls.
@@ -27,6 +27,6 @@ This function prints the violation messages if the parameter, `prtmsg`, was set 
 ## Examples
 Here is an example of calling this function, assuming that the tfconfig-functions.sentinel file that contains it has been imported with the alias `config`:
 ```
-violatingEC2Instances = config.filter_attribute_matches_regex(allEC2Instances,
+violatingEC2Instances = config.attribute_matches_regex(allEC2Instances,
                         "config.ami", "^data\\.aws_ami\\.(.*)$", true)
 ```

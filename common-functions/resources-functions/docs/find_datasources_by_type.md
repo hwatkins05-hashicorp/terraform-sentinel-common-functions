@@ -1,11 +1,11 @@
-# [find_datasources_by_type](../tfconfig-functions.sentinel#L65)
+# [datasources_by_type](../tfconfig-functions.sentinel#L65)
 This function finds all data sources of a specific type in the Terraform configuration of the current plan's workspace using the [tfconfig/v2](https://www.terraform.io/docs/cloud/sentinel/import/tfconfig-v2.html) import.
 
 ## Sentinel Module
 This function is contained in the [tfconfig-functions.sentinel](../../tfconfig-functions.sentinel) module.
 
 ## Declaration
-`find_datasources_by_type = func(type)`
+func `datasources_by_type(type)`
 
 ## Arguments
 * **type**: the type of data source to find, given as a string.
@@ -22,11 +22,11 @@ This function does not print anything.
 ## Examples
 Here are some examples of calling this function, assuming that the tfconfig-functions.sentinel file that contains it has been imported with the alias `config`:
 ```
-allAMIs = config.find_datasources_by_type("aws_ami")
+allAMIs = config.datasources_by_type("aws_ami")
 
-allImages = config.find_datasources_by_type("azurerm_image")
+allImages = config.datasources_by_type("azurerm_image")
 
-allImages = config.find_datasources_by_type("google_compute_image")
+allImages = config.datasources_by_type("google_compute_image")
 
-allDatastores = config.find_datasources_by_type("vsphere_datastore")
+allDatastores = config.datasources_by_type("vsphere_datastore")
 ```

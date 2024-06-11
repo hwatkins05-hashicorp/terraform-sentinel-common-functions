@@ -50,7 +50,7 @@ The `report` module has the following functions:
 The `registry-functions` module (which is located in the cloud-agnostic/http-examples/registry-functions directory) has the following functions:
   * The `get_recent_module_versions` function finds recent versions for private or public modules from a private module registry (PMR).
   * The `get_recent_module_versions_by_page` function finds recent versions for private or public modules from a private module registry (PMR) one page at a time. It is called by the `get_recent_module_versions` function. Having a separate function that deals with pagination keeps the interface for the `get_recent_module_versions` function cleaner.
-  * The `find_most_recent_version` function finds the most recent versing string from a map of version strings.
+  * The `most_recent_version` function finds the most recent versing string from a map of version strings.
   * The `is_module_in_public_registry` function determines if a module is in the public module registry.
 
 Documentation for each individual function can be found in this directory:
