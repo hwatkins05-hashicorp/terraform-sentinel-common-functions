@@ -1,7 +1,7 @@
 # Common functions that use the tfconfig/v2 import
 # From config only so far
 ##### Imports #####
-import "tfconfig/v2" as tfconfig
+# import "tfconfig/v2" as tfconfig
 # import "tfplan/v2" as tfplan
 # import "tfstate/v2" as tfstate
 import "general-functions" as general
@@ -12,8 +12,8 @@ import "types"
 
 ### all_resources ###
 # Find all resources of all types using the tfconfig/v2 import.
-func all_resources() {
-  return filter tfconfig.resources as address, r {
+func all_resources(resources) {
+  return filter resources as address, r {
   	r.mode is "managed"
   }
 }
@@ -21,8 +21,8 @@ func all_resources() {
 ### resources_by_type ###
 # Find all resources of a specific type using the tfconfig/v2 import.
 # The parameter, type, should be a string like "aws_instance".
-func resources_by_type(type) {
-  return filter tfconfig.resources as address, r {
+func resources_by_type(resources, type) {
+  return filter resources as address, r {
   	r.type is type and
   	r.mode is "managed"
   }
@@ -30,8 +30,8 @@ func resources_by_type(type) {
 
 ### resources_in_module ###
 # Find all resources from a specific module using the tfconfig/v2 import.
-func resources_in_module(module_address) {
-  return filter tfconfig.resources as address, r {
+func resources_in_module(resources, module_address) {
+  return filter resources as address, r {
   	r.module_address is module_address and
   	r.mode is "managed"
   }
@@ -40,8 +40,8 @@ func resources_in_module(module_address) {
 ### resources_by_provider ###
 # Find all resources from a specific provider using the tfconfig/v2 import.
 # The parameter, provider, should be given as a string such as "aws".
-func resources_by_provider(provider) {
-  return filter tfconfig.resources as address, r {
+func resources_by_provider(resources, provider) {
+  return filter resources as address, r {
   	r.provider_config_key matches "(.*:)?" + provider + "(\\..*)?" and
   	r.mode is "managed"
   }
@@ -49,8 +49,8 @@ func resources_by_provider(provider) {
 
 ### all_datasources ###
 # Find all data sources of all types using the tfconfig/v2 import.
-func all_datasources() {
-  return filter tfconfig.resources as address, d {
+func all_datasources(resources) {
+  return filter resources as address, d {
   	d.mode is "data"
   }
 }
@@ -58,8 +58,8 @@ func all_datasources() {
 ### datasources_by_type ###
 # Find all data sources of a specific type using the tfconfig/v2 import.
 # The parameter, type, should be a string like "aws_ami".
-func datasources_by_type(type) {
-  return filter tfconfig.resources as address, d {
+func datasources_by_type(resources, type) {
+  return filter resources as address, d {
   	d.type is type and
   	d.mode is "data"
   }
@@ -67,8 +67,8 @@ func datasources_by_type(type) {
 
 ### datasources_in_module ###
 # Find all data sources from a specific module using the tfconfig/v2 import.
-func datasources_in_module(module_address) {
-  return filter tfconfig.resources as address, d {
+func datasources_in_module(resources, module_address) {
+  return filter resources as address, d {
   	d.module_address is module_address and
   	d.mode is "data"
   }
@@ -77,75 +77,79 @@ func datasources_in_module(module_address) {
 ### datasources_by_provider ###
 # Find all data sources from a specific provider using the tfconfig/v2 import.
 # The parameter, provider, should be given as a string such as "aws".
-func datasources_by_provider(provider) {
-  return filter tfconfig.resources as address, d {
+func datasources_by_provider(resources, provider) {
+  return filter resources as address, d {
   	d.provider_config_key matches "(.*:)?" + provider + "(\\..*)?" and
   	d.mode is "data"
   }
 }
 
+## TO-DO: Is this necessary?
 ### all_provisioners ###
 # Find all provisioners using the tfconfig/v2 import.
 func all_provisioners() {
-  return tfconfig.provisioners
+  return provisioners
 }
 
 ### provisioners_by_type ###
 # Find all provisioners of a specific type using the tfconfig/v2 import.
 # The parameter, type, should be a string like "local_exec".
-func provisioners_by_type(type) {
-  return filter tfconfig.provisioners as address, p {
+func provisioners_by_type(provisioners, type) {
+  return filter provisioners as address, p {
   	p.type is type
   }
 }
 
+## TO-DO: Is this necessary?
 ### all_providers ###
 # Find all providers using the tfconfig/v2 import.
 func all_providers() {
-  return tfconfig.providers
+  return providers
 }
 
 ### providers_by_type ###
 # Find all providers of a specific type using the tfconfig/v2 import.
 # The parameter, provider, should be given as a string such as "aws".
-func providers_by_type(type) {
-  return filter tfconfig.providers as address, p {
+func providers_by_type(providers, type) {
+  return filter providers as address, p {
   	p.provider_config_key matches "(.*:)?" + type + "(\\..*)?"
   }
 }
 
 ### providers_in_module ###
 # Find all providers from a specific module using the tfconfig/v2 import.
-func providers_in_module(module_address) {
-  return filter tfconfig.providers as address, p {
+func providers_in_module(providers, module_address) {
+  return filter providers as address, p {
   	p.module_address is module_address
   }
 }
 
+## TO-DO: Is this necessary?
 ### all_variables ###
 # Find all variables using the tfconfig/v2 import.
 func all_variables() {
-  return tfconfig.variables
+  return variables
 }
 
 ### variables_in_module ###
 # Find all variables from a specific module using the tfconfig/v2 import.
-func variables_in_module(module_address) {
-  return filter tfconfig.variables as address, v {
+func variables_in_module(variables, module_address) {
+  return filter variables as address, v {
   	v.module_address is module_address
   }
 }
 
+## TO-DO: Is this necessary?
 ### all_outputs ###
 # Find all outputs using the tfconfig/v2 import.
 func all_outputs() {
-  return tfconfig.outputs
+  return outputs
 }
 
 ### outputs_in_module ###
 # Find all providers from a specific module using the tfconfig/v2 import.
-func outputs_in_module(module_address) {
-  return filter tfconfig.outputs as address, o {
+func outputs_in_module(outputs, module_address) {
+  return filter outputs as address, o {
   	o.module_address is module_address
   }
 }
@@ -153,16 +157,17 @@ func outputs_in_module(module_address) {
 ### outputs_by_sensitivity ###
 # Find all providers of specific sensitivity using the tfconfig/v2 import.
 # The parameter, sensitive, should be true or false (without quotes)
-func outputs_by_sensitivity(sensitive) {
-  return filter tfconfig.outputs as address, o {
+func outputs_by_sensitivity(outputs, sensitive) {
+  return filter outputs as address, o {
   	o.sensitive is sensitive
   }
 }
 
+## TO-DO: Is this necessary?
 ### all_module_calls ###
 # Find all module calls using the tfconfig/v2 import.
 func all_module_calls() {
-  return tfconfig.module_calls
+  return module_calls
 }
 
 ### module_calls_in_module ###
@@ -172,8 +177,8 @@ func all_module_calls() {
 # "module.A" for a module A called by the root module,
 # "module.A.module.B" for module B called by module A called by the root module,
 # and so on.
-func module_calls_in_module(module_address) {
-  return filter tfconfig.module_calls as address, mc {
+func module_calls_in_module(module_calls, module_address) {
+  return filter module_calls as address, mc {
   	mc.module_address is module_address
   }
 }
@@ -184,9 +189,9 @@ func module_calls_in_module(module_address) {
 # To find all module addresses, call descendant_modules("")
 # After calling this function against "", you can call module_calls_in_module
 # against any item in the list that is returned.
-func descendant_modules(module_address) {
+func descendant_modules(module_calls, module_address) {
   module_addresses = [module_address]
-  mcs = module_calls_in_module(module_address)
+  mcs = module_calls_in_module(module_calls, module_address)
   
   if length(mcs) > 0 {
     for mcs as ma, mc {
@@ -195,7 +200,7 @@ func descendant_modules(module_address) {
       } else {
         new_module_address = mc.module_address + ".module." + mc.name
       }
-      module_addresses += descendant_modules(new_module_address)
+      module_addresses += descendant_modules(module_calls, new_module_address)
     }
   }
 

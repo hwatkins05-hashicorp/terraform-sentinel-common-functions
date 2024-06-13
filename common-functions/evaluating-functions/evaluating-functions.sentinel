@@ -33,117 +33,60 @@ func evaluate_attribute(item, attribute) {
   }
 }
 
+## TO-DO: if given item's attribute is not in given list of allowed values, it's true, else false
+## attribute_not_allowed
 ### attribute_not_in_list ###
 # Filter a list of items such as providers to those with a specified
 # attribute (attr) that is not in a given list of allowed values (allowed).
 # The parameter, attr, can only be a top-level attribute of the collection, items.
 # Set prtmsg to `true` (without quotes) if you want to print violation messages.
 # If you want to disallow null, include "null" in the list (forbidden).
-func attribute_not_in_list(items, attr, allowed, prtmsg) {
-  violators = {}
-  messages = {}
-
-  # Iterate over items
-  for items as index, item {
-    val = evaluate_attribute(item, attr) else null
-    # Check if the value is null
-    if val is null {
-      val = "null"
+func attribute_not_in_list(item, attr, allowed, prtmsg) {
+  not_allowed = true
+  val = evaluate_attribute(item, attr) else null
+  if val is null {
+    return false
+  }
+  if types.type_of(val) in ["list", "map"] {
+    for val as i, v {
+      if v in allowed {
+        return false
+      }
     }
-    # Process lists and maps
-    if types.type_of(val) in ["list", "map"] {
-      message = ""
-      # Check each item of list or map
-      for val as i, v {
-        if v not in allowed {
-          # Add the item and a warning message to the violators list
-          message = general.to_string(index) + " has " + general.to_string(attr) + " with value " +
-                    general.to_string(v) + " that is not in the allowed list: " +
-                    general.to_string(allowed)
-        }
-        if message is not "" {
-          # Add the item and warning message to the violators list
-          violators[index] = item
-      		messages[index] = message
-          if prtmsg {
-            print(message)
-          }
-        } // end message not ""
-      } // end for
-    } else {
-      # Process single item
-      if val not in allowed {
-        # Add the item and a warning message to the violators list
-        message = general.to_string(index) + " has " + general.to_string(attr) +
-                  " with value " + general.to_string(val) +
-                  " that is not in the allowed list: " +
-                  general.to_string(allowed)
-        violators[index] = item
-        messages[index] = message
-        if prtmsg {
-          print(message)
-        }
-      } // end if single item not matches
-    } // end single item
-  } // end for items
-  return {"items": violators, "messages":messages}
+  } else {
+    if val not in allowed {
+      return not_allowed
+    }
+  }
+  return not_allowed
 }
 
+## TO-DO: If attribute is forbidden, returns true, else returns false
+## attribute_is_forbidden
 ### attribute_in_list ###
 # Filter a list of items such as providers to those with a specified
 # attribute (attr) that is in a given list of forbidden values (forbidden).
 # The parameter, attr, can only be a top-level attribute of the collection, items.
 # Set prtmsg to `true` (without quotes) if you want to print violation messages.
 # If you want to disallow null, include "null" in the list (forbidden).
-func attribute_in_list(items, attr, forbidden, prtmsg) {
-  violators = {}
-  messages = {}
-
-  # Iterate over items
-  for items as index, item {
-    val = evaluate_attribute(item, attr) else null
-    # Check if the value is null
-    if val is null {
-      val = "null"
+func attribute_in_list(item, attr, forbidden, prtmsg) {
+  forbidden = true
+  val = evaluate_attribute(item, attr) else null
+  if val is null {
+    return false
+  }
+  if types.type_of(val) in ["list", "map"] {
+    for val as i, v {
+      if v not in forbidden {
+        return false
+      }
     }
-    # Process lists and maps
-    if types.type_of(val) in ["list", "map"] {
-      message = ""
-      # Check each item of list or map
-      for val as i, v {
-        if v in forbidden {
-          # Add the item and a warning message to the violators list
-          message = general.to_string(index) + " has " + general.to_string(attr) + " with value " +
-                    general.to_string(v) + " that is in the forbidden list: " +
-                    general.to_string(forbidden)
-        }
-        if message is not "" {
-          # Add the item and warning message to the violators list
-          violators[index] = item
-      		messages[index] = message
-          if prtmsg {
-            print(message)
-          }
-        } // end message not ""
-      } // end for
-    } else {
-      # Process single item
-      if val in forbidden {
-        # Add the item and a warning message to the violators list
-        message = general.to_string(index) + " has " + general.to_string(attr) +
-                  " with value " + general.to_string(val) +
-                  " that is in the forbidden list: " +
-                  general.to_string(forbidden)
-        violators[index] = item
-        messages[index] = message
-        if prtmsg {
-          print(message)
-        }
-      } // end if single item not matches
-    } // end single item
-  } // end for items
-
-  return {"items": violators, "messages": messages}
+  } else {
+    if val in forbidden {
+      return forbidden
+    }
+  }
+  return forbidden
 }
 
 ### attribute_does_not_match_regex ###
@@ -152,61 +95,25 @@ func attribute_in_list(items, attr, forbidden, prtmsg) {
 # The parameter, attr, can only be a top-level attribute of items or
 # an attribute in the form "config.x".
 # Set prtmsg to `true` (without quotes) if you want to print violation messages.
-func attribute_does_not_match_regex(items, attr, expr, prtmsg) {
-  violators = {}
-	messages = {}
-
-  for items as index, item {
-    val = evaluate_attribute(item, attr) else null
-    if val is null {
-      # Add the item and a warning message to the violators list
-      message = general.to_string(index) + " has " + general.to_string(attr) +
-                " that is null or undefined. " + "It is supposed to " +
-                "match the regex " + general.to_string(expr)
-      violators[index] = item
-			messages[index] = message
-      if prtmsg {
-        print(message)
+func attribute_does_not_match_regex(item, attr, expr, prtmsg) {
+  no_match = true
+  val = evaluate_attribute(item, attr) else null
+  if val is null {
+    return false
+  } else {
+    if types.type_of(val) in ["list", "map"] {
+      for val as i, v {
+        if v matches expr {
+          return false
+        }
       }
     } else {
-      # Process lists and maps
-      if types.type_of(val) in ["list", "map"] {
-        message = ""
-        # Check each item of list or map
-        for val as i, v {
-          if v not matches expr {
-            # Add to the warning message
-            message += general.to_string(index) + " has " + general.to_string(attr) +
-                      " with value " + general.to_string(v) +
-                      " that does not match the regex " + general.to_string(expr) + "\n"
-          }
-          if message is not "" {
-            # Add the item and warning message to the violators list
-            violators[index] = item
-      			messages[index] = message
-            if prtmsg {
-              print(message)
-            }
-          } // end message not ""
-        } // end for
-      } else {
-        # Process single item
-        if val not matches expr {
-          # Add the item and a warning message to the violators list
-          message = general.to_string(index) + " has " + general.to_string(attr) +
-                    " with value " + general.to_string(val) +
-                    " that does not match the regex " + general.to_string(expr)
-          violators[index] = item
-          messages[index] = message
-          if prtmsg {
-            print(message)
-          }
-        } // end if single item not matches
-      } // end single item
-    } // end not null
-  } // end for items
-
-  return {"items": violators, "messages": messages}
+      if val not matches expr {
+        return no_match
+      }
+    }
+  }
+  return no_match
 }
 
 ### attribute_matches_regex ###
@@ -216,52 +123,25 @@ func attribute_does_not_match_regex(items, attr, expr, prtmsg) {
 # an attribute in the form "config.x".
 # Set prtmsg to `true` (without quotes) if you want to print violation messages.
 # If you want to match null, set expr to "null".
-func attribute_matches_regex(items, attr, expr, prtmsg) {
-  violators = {}
-	messages = {}
-
-  for items as index, item {
-    val = evaluate_attribute(item, attr) else null
-    if val is null {
-      val = "null"
-    }
-    # Process lists and maps
+func attribute_matches_regex(item, attr, expr, prtmsg) {
+  match = true
+  val = evaluate_attribute(item, attr) else null
+  if val is null {
+    return false
+  } else {
     if types.type_of(val) in ["list", "map"] {
-      message = ""
-      # Check each item of list or map
       for val as i, v {
-        if v matches expr {
-          # Add to the warning message
-          message += general.to_string(index) + " has " + general.to_string(attr) +
-                    " with value " + general.to_string(v) +
-                    " that matches the regex " + general.to_string(expr) + "\n"
+        if v not matches expr {
+          return false
         }
-        if message is not "" {
-          # Add the item and warning message to the violators list
-          violators[index] = item
-          messages[index] = message
-          if prtmsg {
-            print(message)
-          }
-        } // end message not ""
-      } // end for
+      }
     } else {
-      # Process single item
       if val matches expr {
-        # Add the item and a warning message to the violators list
-        message = general.to_string(index) + " has " + general.to_string(attr) +
-                  " with value " + general.to_string(val) +
-                  " that matches the regex " + general.to_string(expr)
-        violators[index] = item
-        messages[index] = message
-        if prtmsg {
-          print(message)
-        }
-      } // end if single item not matches
-    } // end single item
-  } // end for items
-
-  return {"items": violators, "messages": messages}
+        return match
+      }
+    }
+  }
+  return match
 }
 
 ### get_module_source ###
