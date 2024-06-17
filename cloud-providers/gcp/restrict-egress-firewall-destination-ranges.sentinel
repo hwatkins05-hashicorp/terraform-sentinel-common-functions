@@ -1,9 +1,12 @@
 # This policy uses the Sentinel tfplan/v2 import to block use of the
 # forbidden CIDRs in egress google_compute_firewall resources
-
+# import "tfplan/v2" as tfplan
 # Import common-functions/tfplan-functions/tfplan-functions.sentinel
 # with alias "plan"
 import "tfplan-functions" as plan
+# import "filtering-functions" as filters
+import "evaluating-functions" as eval
+import "collection"
 
 # Forbidden CIDRs
 forbidden_cidrs = ["0.0.0.0/0"]
@@ -13,16 +16,27 @@ allFirewalls = plan.resources("google_compute_firewall")
 
 # Filter to egress firewalls with violations
 # We only want the resources map from the returned map
-egressFirewalls = plan.attribute_is_value(allFirewalls,
-                        "direction", "EGRESS", false).resources
+egressFirewalls = collection.reduce(allFirewalls, func(result, rc) {
+  result = []
+  if eval.attribute_is_value(rc, "direction", "EGRESS") is true {
+    append(result, rc)
+  }
+  return result
+})
 
 # Filter to egress firewalls with forbidden destination_ranges
 # Warnings will be printed for all violations since the last parameter is true
-violatingFirewalls = plan.attribute_contains_items_from_list(
-                     egressFirewalls, "destination_ranges", forbidden_cidrs, true)
+violatingFirewalls = collection.reduce(egressFirewalls, func(result, rc) {
+  result = []
+  if eval.attribute_contains_items_from_list(rc, "destination_ranges", forbidden_cidrs) is true {
+    append(result, rc)
+  }
+  return result
+})
+
 
 # Count violations
-violations = length(violatingFirewalls["messages"])
+violations = length(violatingFirewalls)
 
 # Main rule
 main = rule {

@@ -4,6 +4,8 @@
 # Import common-functions/tfplan-functions/tfplan-functions.sentinel
 # with alias "plan"
 import "tfplan-functions" as plan
+import "evaluating-functions" as eval
+import "collection"
 
 # Import gcp-functions/gcp-functions.sentinel
 # with alias "gcp"
@@ -28,13 +30,17 @@ allGCPResourcesWithStandardLabels =
                         gcp.resources_with_standard_labels(resource_types)
 
 # Filter to GCP resources with violations using list of resources
-# Warnings will be printed for all violations since the last parameter is true
-violatingGCPResources =
-      plan.attribute_not_contains_list(allGCPResourcesWithStandardLabels,
-                    "labels", mandatory_labels, true)
 
+
+violatingGCPResources = collection.reduce(allGCPResourcesWithStandardLabels, func(result, rc) {
+  result = []
+  if eval.attribute_not_contains_list(rc, "labels", mandatory_labels) is true {
+    append(result, rc)
+  }
+  return result
+}) 
 
 # Main rule
 main = rule {
-  length(violatingGCPResources["messages"]) is 0
+  length(violatingGCPResources) is 0
 }
