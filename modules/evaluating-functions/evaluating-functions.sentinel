@@ -14,9 +14,10 @@ import "types"
 # `item` is the item with the attribute
 # `attribute` is the attribute
 func evaluate_attribute(item, attribute, version) {
+  # Split the attribute into a list, using "." as the separator
+  attributes = strings.split(attribute, ".")
+
   if version is "config" {
-    # Split the attribute into a list, using "." as the separator
-    attributes = strings.split(attribute, ".")
 
     if length(attributes) > 2 {
       print("An attribute passed to evaluate_attribute can only have 1 or 2 fields")
@@ -40,8 +41,6 @@ func evaluate_attribute(item, attribute, version) {
       return item[attribute]
     }
   } else if version is "plan" {
-    # Split the attribute into a list, using "." as the separator
-    attributes = strings.split(attribute, ".")
 
     # Convert numeric strings to integers for indices
     if attributes[0] matches "^[0-9]+$" {
@@ -75,10 +74,56 @@ func evaluate_attribute(item, attribute, version) {
       # recursive calls and return the value of the attribute
       return new_r
     }
+  } else if version is "state" {
+
+    # Convert numeric strings to integers for indices
+    if attributes[0] matches "^[0-9]+$" {
+      a = int(attributes[0])
+      # Make sure r is of type list
+      if types.type_of(r) is not "list" {
+        return undefined
+      }
+    } else {
+      a = attributes[0]
+    }
+
+    # Append the current attribute to the resource instance
+    new_r = item[a] else null
+
+    # Append the current attribute to the resource instance
+    # We check if r is a map having `values` (also a map) and `module_address`, so
+    # that filter functions can pass in `r` instead of `r.values`.
+    # The extra check for `module_address` is meant to make sure that `r`
+    # is really a resource from the tfstate/v2 resources collection rather than
+    # some block which just happens to have a key called `values`.
+    # An example of such a block is the `filters` block of the `aws_ami` data source.
+    if types.type_of(item) is "map" and "values" in keys(item) and types.type_of(item.values) is "map" and "module_address" in keys(item) {
+      new_r = item.values[a] else null
+    } else {
+      new_r = item[a] else null
+    }
+
+    # Process based on length of attributes
+    # being greater than or equal to 1
+    if length(attributes) > 1 {
+
+      # Strip first element from attributes
+      attributes = attributes[1:length(attributes)]
+      attribute = strings.join(attributes, ".")
+
+      # Make recursive call
+      return evaluate_attribute(new_r, attribute)
+    } else {
+
+      # We reached the end of the attribute and can stop the
+      # recursive calls and return the value of the attribute
+      return new_r
+    }
   }
 }
 
 ## TO-DO: if given item's attribute is not in given list of allowed values, it's true, else false
+## can be used by any import so need to fix up evaluate_attribute so it's not dependent, right?
 ## attribute_not_allowed
 ### attribute_not_in_list ###
 # Filter a list of items such as providers to those with a specified
@@ -86,21 +131,23 @@ func evaluate_attribute(item, attribute, version) {
 # The parameter, attr, can only be a top-level attribute of the collection, items.
 # Set prtmsg to `true` (without quotes) if you want to print violation messages.
 # If you want to disallow null, include "null" in the list (forbidden).
-func attribute_not_in_list(item, attr, allowed) {
+func attribute_not_in_list(item, attr, allowed) { // TO-DO: Three use this function
   not_allowed = true
   val = evaluate_attribute(item, attr, "plan") else null
   if val is null {
-    return false
+    val = "null"
   }
   if types.type_of(val) in ["list", "map"] {
     for val as i, v {
       if v in allowed {
-        return false
+        return !not_allowed
       }
     }
   } else {
     if val not in allowed {
       return not_allowed
+    } else {
+      return !not_allowed
     }
   }
   return not_allowed
@@ -114,24 +161,26 @@ func attribute_not_in_list(item, attr, allowed) {
 # The parameter, attr, can only be a top-level attribute of the collection, items.
 # Set prtmsg to `true` (without quotes) if you want to print violation messages.
 # If you want to disallow null, include "null" in the list (forbidden).
-func attribute_in_list(item, attr, forbidden) {
-  forbidden = true
+func attribute_in_list(item, attr, forbidden) { // TO-DO: Three use this function
+  in_list = true
   val = evaluate_attribute(item, attr, "plan") else null
   if val is null {
-    return false
+    val = "null"
   }
   if types.type_of(val) in ["list", "map"] {
     for val as i, v {
       if v not in forbidden {
-        return false
+        return !in_list
       }
     }
   } else {
     if val in forbidden {
-      return forbidden
+      return in_list
+    } else {
+      return !in_list
     }
   }
-  return forbidden
+  return in_list
 }
 
 ### attribute_does_not_match_regex ###
@@ -140,21 +189,23 @@ func attribute_in_list(item, attr, forbidden) {
 # The parameter, attr, can only be a top-level attribute of items or
 # an attribute in the form "config.x".
 # Set prtmsg to `true` (without quotes) if you want to print violation messages.
-func attribute_does_not_match_regex(item, attr, expr) {
+func attribute_does_not_match_regex(item, attr, expr) { // TO-DO: Three use this function, works the same, just have to change evaluate_attribute version param
   no_match = true
   val = evaluate_attribute(item, attr, "plan") else null
   if val is null {
-    return false
+    val = "null"
   } else {
     if types.type_of(val) in ["list", "map"] {
       for val as i, v {
         if v matches expr {
-          return false
+          return !no_match
         }
       }
     } else {
       if val not matches expr {
         return no_match
+      } else {
+        return !no_match
       }
     }
   }
@@ -168,21 +219,23 @@ func attribute_does_not_match_regex(item, attr, expr) {
 # an attribute in the form "config.x".
 # Set prtmsg to `true` (without quotes) if you want to print violation messages.
 # If you want to match null, set expr to "null".
-func attribute_matches_regex(item, attr, expr) {
+func attribute_matches_regex(item, attr, expr) { // TO-DO: Three use this function
   match = true
   val = evaluate_attribute(item, attr, "plan") else null
   if val is null {
-    return false
+    val = "null"
   } else {
     if types.type_of(val) in ["list", "map"] {
       for val as i, v {
         if v not matches expr {
-          return false
+          return !match
         }
       }
     } else {
       if val matches expr {
         return match
+      } else {
+        return !match
       }
     }
   }
@@ -197,7 +250,7 @@ func attribute_matches_regex(item, attr, expr) {
 # attribute (attr) that does not contain a given list of required values (required).
 # Set prtmsg to `true` (without quotes) if you want to print violation messages.
 # Resources should be derived by applying filters to tfplan.resource_changes.
-func attribute_not_contains_list(resource, attr, required) {
+func attribute_not_contains_list(resource, attr, required) { // TO-DO: Plan and state use this function, no differences
   not_contains = true
   v = evaluate_attribute(resource, attr, "plan") else null
   if v is null or not (types.type_of(v) is "list" or types.type_of(v) is "map") {
@@ -224,7 +277,7 @@ func attribute_not_contains_list(resource, attr, required) {
 # Resources should be derived by applying filters to tfplan.resource_changes.
 # Set prtmsg to `true` (without quotes) if you want to print violation messages.
 # If you want to disallow null, include "null" in the list (forbidden).
-func attribute_contains_items_from_list(resource, attr, forbidden) {
+func attribute_contains_items_from_list(resource, attr, forbidden) { // TO-DO: Plan and state use this function, no differences
   contains_items = true
   v = evaluate_attribute(resource, attr, "plan") else null
   if not (types.type_of(v) is "list" or types.type_of(v) is "map" or types.type_of(v) is "null") {
@@ -243,8 +296,8 @@ func attribute_contains_items_from_list(resource, attr, forbidden) {
     if length(forbidden_values) > 0 {
       return contains_items
     } // end if
-  return !contains_items
   } // end else
+  return !contains_items
 }
 
 ### attribute_contains_items_not_in_list ###
@@ -253,58 +306,27 @@ func attribute_contains_items_from_list(resource, attr, forbidden) {
 # Resources should be derived by applying filters to tfplan.resource_changes.
 # Set prtmsg to `true` (without quotes) if you want to print violation messages.
 # If you want to allow null, include "null" in the list (allowed).
-func attribute_contains_items_not_in_list(resources, attr, allowed) {
-  violators = {}
-	messages = {}
-
-  for resources as address, rc {
-    # Evaluate the value (vals) of the attribute
-    vals = evaluate_attribute(rc, attr, "plan") else null
-    # Check if the value contains items not in allowed list
-    if not (types.type_of(vals) is "list" or types.type_of(vals) is "map" or types.type_of(vals) is "null") {
-        # Add the resource and a warning message to the violators list
-        message = general.to_string(address) + " has " + general.to_string(attr) + " with value " +
-                  general.to_string(vals) + " that is not a map, a list, or null"
-        violators[address] = rc
-        messages[address] = message
-        if prtmsg {
-          print(message)
-        }
-    } else if vals is null {
-      if "null" not in allowed {
-        # Add the resource and a warning message to the violators list
-        message = general.to_string(address) + " has " + general.to_string(attr) +
-                  " with value null that is not in the allowed list: " +
-                  general.to_string(allowed)
-        violators[address] = rc
-        messages[address] = message
-        if prtmsg {
-          print(message)
-        }
+func attribute_contains_items_not_in_list(resource, attr, allowed) { // TO-DO: Plan and state use this function, no differences
+  contains_non_items = true
+  val = evaluate_attribute(resource, attr, "state") else null
+  if not (types.type_of(val) is "list" or types.type_of(val) is "map" or types.type_of(val) is "null") {
+    return contains_non_items
+  } else if val is null {
+    if "null" not in allowed {
+      return contains_non_items
+    }
+  } else {
+    forbidden_values = []
+    for val as v {
+      if v not in allowed {
+        append(forbidden_values, v)
       }
-    } else {
-      forbidden_values = []
-      for vals as v {
-        if v not in allowed {
-          append(forbidden_values, v)
-        } // end if v not allowed
-      } // end for vals
-      if length(forbidden_values) > 0 {
-        # Build warning message when vals is a map
-        message = general.to_string(address) + " has " + general.to_string(attr) + " with value " +
-                  general.to_string(vals) + " with items " + general.to_string(forbidden_values) +
-                  " that are not in the allowed list: " + general.to_string(allowed)
-        # Add the resource and a warning message to the violators list
-        violators[address] = rc
-				messages[address] = message
-        if prtmsg {
-          print(message)
-        }
-      } // end length(forbidden_values)
-    } // end if null
-  } // end for
-
-  return {"resources": violators, "messages": messages}
+    }
+    if length(forbidden_values) > 0 {
+      return contains_non_items
+    }
+  }
+  return !contains_non_items
 }
 
 ### attribute_is_not_value ###
@@ -312,35 +334,15 @@ func attribute_contains_items_not_in_list(resources, attr, allowed) {
 # attribute (attr) that does not have a given value.
 # Resources should be derived by applying filters to tfplan.resource_changes.
 # Set prtmsg to `true` (without quotes) if you want to print violation messages.
-func attribute_is_not_value(resources, attr, value) {
-  violators = {}
-	messages = {}
-
-  for resources as address, rc {
-    v = evaluate_attribute(rc, attr, "plan") else null
-    if v is null {
-      # Add the resource and a warning message to the violators list
-      message = general.to_string(address) + " has " + general.to_string(attr) +
-                " that is null or undefined. " + "It is supposed to be " +
-                general.to_string(value)
-      violators[address] = rc
-			messages[address] = message
-      if prtmsg {
-        print(message)
-      }
-    } else if v is not value {
-      # Add the resource and a warning message to the violators list
-      message = general.to_string(address) + " has " + general.to_string(attr) + " with value " +
-                general.to_string(v) + " that is not equal to " + general.to_string(value)
-      violators[address] = rc
-			messages[address] = message
-      if prtmsg {
-        print(message)
-      }
-    }
+func attribute_is_not_value(resource, attr, value) { // TO-DO: Plan and state use this function, no differences
+  not_value = true
+  v = evaluate_attribute(resource, attr, "plan") else null
+  if v is null {
+    return not_value
+  } else if v is not value {
+    return not_value
   }
-
-  return {"resources": violators, "messages": messages}
+  return !not_value
 }
 
 ### attribute_was_not_value ###
@@ -351,35 +353,15 @@ func attribute_is_not_value(resources, attr, value) {
 # If you want to match null, set value to "null".
 # Note that it this function passes `rc.change.before` instead of `rc`
 # to the evaluate_attribute() function which converts `rc` to `rc.change.after`.
-func attribute_was_not_value(resources, attr, value) {
-  violators = {}
-	messages = {}
-
-  for resources as address, rc {
-    v = evaluate_attribute(rc.change.before, attr, "plan") else null
-    if v is null {
-      # Add the resource and a warning message to the violators list
-      message = general.to_string(address) + " had " + general.to_string(attr) +
-                " that was null or undefined. " + "It was supposed to be " +
-                general.to_string(value)
-      violators[address] = rc
-			messages[address] = message
-      if prtmsg {
-        print(message)
-      }
-    } else if v is not value {
-      # Add the resource and a warning message to the violators list
-      message = general.to_string(address) + " had " + general.to_string(attr) + " with value " +
-                general.to_string(v) + " that was not equal to " + general.to_string(value)
-      violators[address] = rc
-			messages[address] = message
-      if prtmsg {
-        print(message)
-      }
-    }
+func attribute_was_not_value(resource, attr, value) { // TO-DO: Plan only
+  not_value = true
+  v = evaluate_attribute(resource.change.before, attr, "plan") else null
+  if v is null {
+    v = "null"
+  } else if v is not value {
+    return not_value
   }
-
-  return {"resources": violators, "messages": messages}
+  return !not_value
 }
 
 
@@ -390,15 +372,16 @@ func attribute_was_not_value(resources, attr, value) {
 # Resources should be derived by applying filters to tfplan.resource_changes.
 # Set prtmsg to `true` (without quotes) if you want to print violation messages.
 # If you want to match null, set value to "null".
-func attribute_is_value(resource, attr, value) {
+func attribute_is_value(resource, attr, value) { // TO-DO: Plan and state use this function, no differences
   is_value = true
   v = evaluate_attribute(resource, attr, "plan") else null
   if v is null {
-    return !is_value
+    v = "null"
   }
   if v is value {
     return is_value
   }
+  return !is_value
 }
 
 ### attribute_was_value ###
@@ -409,28 +392,16 @@ func attribute_is_value(resource, attr, value) {
 # If you want to match null, set value to "null".
 # Note that it this function passes `rc.change.before` instead of `rc`
 # to the evaluate_attribute() function which converts `rc` to `rc.change.after`.
-func attribute_was_value(resources, attr, value) {
-  violators = {}
-	messages = {}
-
-  for resources as address, rc {
-    v = evaluate_attribute(rc.change.before, attr, "plan") else null
-    if v is null {
-      v = "null"
-    }
-    if v is value {
-      # Add the resource and a warning message to the violators list
-      message = general.to_string(address) + " had " + general.to_string(attr) + " with value " +
-                general.to_string(v) + " that was not allowed."
-      violators[address] = rc
-			messages[address] = message
-      if prtmsg {
-        print(message)
-      }
-    }
+func attribute_was_value(resource, attr, value) { // TO-DO: Plan only
+  was_value = true
+  v = evaluate_attribute(resource.change.before, attr, "plan") else null
+  if v is null {
+    v = "null"
   }
-
-  return {"resources": violators, "messages": messages}
+  if v is value {
+    return was_value
+  }
+  return !was_value
 }
 
 ### attribute_greater_than_value ###
@@ -438,35 +409,15 @@ func attribute_was_value(resources, attr, value) {
 # attribute (attr) that is greater than a given numeric value.
 # Resources should be derived by applying filters to tfplan.resource_changes.
 # Set prtmsg to `true` (without quotes) if you want to print violation messages.
-func attribute_greater_than_value(resources, attr, value) {
-  violators = {}
-	messages = {}
-
-  for resources as address, rc {
-    v = evaluate_attribute(rc, attr, "plan") else null
-    if float(v) else null is null {
-      # Add the resource and a warning message to the violators list
-      message = general.to_string(address) + " has " + general.to_string(attr) +
-                " that is null or undefined. " + "It is supposed to be less " +
-                "than or equal to " + general.to_string(value)
-      violators[address] = rc
-			messages[address] = message
-      if prtmsg {
-        print(message)
-      }
-    } else if float(v) > value {
-      # Add the resource and a warning message to the violators list
-      message = general.to_string(address) + " has " + general.to_string(attr) + " with value " +
-                general.to_string(v) + " that is greater than " + general.to_string(value)
-      violators[address] = rc
-			messages[address] = message
-      if prtmsg {
-        print(message)
-      }
-    }
+func attribute_greater_than_value(resource, attr, value) { // TO-DO: Plan and state use this function, no differences
+  greater_than = true
+  v = evaluate_attribute(resource, attr, "plan") else null
+  if float(v) else null is null {
+    return !greater_than
+  } else if float(v) > value {
+    return greater_than
   }
-
-  return {"resources": violators, "messages": messages}
+  return !greater_than
 }
 
 ### attribute_greater_than_equal_to_value ###
@@ -474,35 +425,15 @@ func attribute_greater_than_value(resources, attr, value) {
 # attribute (attr) that is greater than a given numeric value.
 # Resources should be derived by applying filters to tfplan.resource_changes.
 # Set prtmsg to `true` (without quotes) if you want to print violation messages.
-func attribute_greater_than_equal_to_value(resources, attr, value) {
-  violators = {}
-	messages = {}
-
-  for resources as address, rc {
-    v = evaluate_attribute(rc, attr, "plan") else null
-    if float(v) else null is null {
-      # Add the resource and a warning message to the violators list
-      message = general.to_string(address) + " has " + general.to_string(attr) +
-                " that is null or undefined. " + "It is supposed to be less " +
-                "than " + general.to_string(value)
-      violators[address] = rc
-			messages[address] = message
-      if prtmsg {
-        print(message)
-      }
-    } else if float(v) >= value {
-      # Add the resource and a warning message to the violators list
-      message = general.to_string(address) + " has " + general.to_string(attr) + " with value " +
-                general.to_string(v) + " that is greater than or equal to " + general.to_string(value)
-      violators[address] = rc
-			messages[address] = message
-      if prtmsg {
-        print(message)
-      }
-    }
+func attribute_greater_than_equal_to_value(resource, attr, value) { // TO-DO: Plan only
+  greater_than_equal = true
+  v = evaluate_attribute(resource, attr, "plan") else null
+  if float(v) else null is null {
+    return !greater_than_equal
+  } else if float(v) >= value {
+    return greater_than_equal
   }
-  
-  return {"resources": violators, "messages": messages}
+  return !greater_than_equal
 }
 
 ### attribute_less_than_value ###
@@ -510,26 +441,58 @@ func attribute_greater_than_equal_to_value(resources, attr, value) {
 # attribute (attr) that is less than a given numeric value.
 # Resources should be derived by applying filters to tfplan.resource_changes.
 # Set prtmsg to `true` (without quotes) if you want to print violation messages.
-func attribute_less_than_value(resources, attr, value) {
+func attribute_less_than_value(resource, attr, value) { // TO-DO: Plan and state use this function, no differences
+  less_than = true
+  v = evaluate_attribute(resource, attr, "plan") else null
+  if float(v) else null is null {
+    return !less_than
+  } else if float(v) < value {
+    return less_than
+  }
+  return !less_than
+}
+
+### attribute_less_than_equal_to_value ###
+# Filter a list of resources to those with a specified
+# attribute (attr) that is less than a given numeric value.
+# Resources should be derived by applying filters to tfplan.resource_changes.
+# Set prtmsg to `true` (without quotes) if you want to print violation messages.
+func attribute_less_than_equal_to_value(resource, attr, value) { // TO-DO: Plan only
+  less_than_equal = true
+  v = evaluate_attribute(resource, attr, "plan") else null
+  if float(v) else null is null {
+    return !less_than_equal
+  } else if float(v) <= value {
+    return less_than_equal
+  }
+  return !less_than_equal
+}
+
+### attribute_does_not_have_prefix ###
+# Filter a list of resources to those with a specified
+# attribute (attr) that does not have a given prefix.
+# Resources should be derived by applying filters to tfplan.resource_changes.
+# Set prtmsg to `true` (without quotes) if you want to print violation messages.
+func attribute_does_not_have_prefix(resources, attr, prefix, prtmsg) {
   violators = {}
 	messages = {}
 
   for resources as address, rc {
-    v = evaluate_attribute(rc, attr, "plan") else null
-    if float(v) else null is null {
+    v = evaluate_attribute(rc, attr) else null
+    if v is null {
       # Add the resource and a warning message to the violators list
       message = general.to_string(address) + " has " + general.to_string(attr) +
-                " that is null or undefined. " + "It is supposed to be greater " +
-                "than or equal to " + general.to_string(value)
+                " that is null or undefined. " + "It must have a value that " +
+                "starts with " + general.to_string(prefix)
       violators[address] = rc
 			messages[address] = message
       if prtmsg {
         print(message)
       }
-    } else if float(v) < value {
+    } else if not strings.has_prefix(v, prefix) {
       # Add the resource and a warning message to the violators list
       message = general.to_string(address) + " has " + general.to_string(attr) + " with value " +
-                general.to_string(v) + " that is less than " + general.to_string(value)
+                general.to_string(v) + " that does not have the prefix " + general.to_string(prefix)
       violators[address] = rc
 			messages[address] = message
       if prtmsg {
@@ -541,31 +504,31 @@ func attribute_less_than_value(resources, attr, value) {
   return {"resources": violators, "messages": messages}
 }
 
-### attribute_less_than_equal_to_value ###
+### attribute_has_prefix ###
 # Filter a list of resources to those with a specified
-# attribute (attr) that is less than a given numeric value.
+# attribute (attr) that has a given prefix.
 # Resources should be derived by applying filters to tfplan.resource_changes.
 # Set prtmsg to `true` (without quotes) if you want to print violation messages.
-func attribute_less_than_equal_to_value(resources, attr, value) {
+func attribute_has_prefix(resources, attr, prefix, prtmsg) {
   violators = {}
 	messages = {}
 
   for resources as address, rc {
-    v = evaluate_attribute(rc, attr, "plan") else null
-    if float(v) else null is null {
+    v = evaluate_attribute(rc, attr) else null
+    if v is null {
       # Add the resource and a warning message to the violators list
       message = general.to_string(address) + " has " + general.to_string(attr) +
-                " that is null or undefined. " + "It is supposed to be greater " +
-                "than " + general.to_string(value)
+                " that is null or undefined. " + "It must have a value that " +
+                "does not start with " + general.to_string(prefix)
       violators[address] = rc
 			messages[address] = message
       if prtmsg {
         print(message)
       }
-    } else if float(v) <= value {
+    } else if strings.has_prefix(v, prefix) {
       # Add the resource and a warning message to the violators list
       message = general.to_string(address) + " has " + general.to_string(attr) + " with value " +
-                general.to_string(v) + " that is less than or equal to " + general.to_string(value)
+                general.to_string(v) + " that has the prefix " + general.to_string(prefix)
       violators[address] = rc
 			messages[address] = message
       if prtmsg {
@@ -575,6 +538,209 @@ func attribute_less_than_equal_to_value(resources, attr, value) {
   }
 
   return {"resources": violators, "messages": messages}
+}
+
+### attribute_does_not_have_suffix ###
+# Filter a list of resources to those with a specified
+# attribute (attr) that does not have a given suffix.
+# Resources should be derived by applying filters to tfplan.resource_changes.
+# Set prtmsg to `true` (without quotes) if you want to print violation messages.
+func attribute_does_not_have_suffix(resources, attr, suffix, prtmsg) {
+  violators = {}
+	messages = {}
+
+  for resources as address, rc {
+    v = evaluate_attribute(rc, attr) else null
+    if v is null {
+      # Add the resource and a warning message to the violators list
+      message = general.to_string(address) + " has " + general.to_string(attr) +
+                " that is null or undefined. " + "It must have a value that " +
+                "ends with " + general.to_string(prefix)
+      violators[address] = rc
+			messages[address] = message
+      if prtmsg {
+        print(message)
+      }
+    } else if not strings.has_suffix(v, suffix) {
+      # Add the resource and a warning message to the violators list
+      message = general.to_string(address) + " has " + general.to_string(attr) + " with value " +
+                general.to_string(v) + " that does not have the suffix " + general.to_string(suffix)
+      violators[address] = rc
+			messages[address] = message
+      if prtmsg {
+        print(message)
+      }
+    }
+  }
+
+  return {"resources": violators, "messages": messages}
+}
+
+### attribute_has_suffix ###
+# Filter a list of resources to those with a specified
+# attribute (attr) that has a given suffix.
+# Resources should be derived by applying filters to tfplan.resource_changes.
+# Set prtmsg to `true` (without quotes) if you want to print violation messages.
+func attribute_has_suffix(resources, attr, suffix, prtmsg) {
+  violators = {}
+	messages = {}
+
+  for resources as address, rc {
+    v = evaluate_attribute(rc, attr) else null
+    if v is null {
+      # Add the resource and a warning message to the violators list
+      message = general.to_string(address) + " has " + general.to_string(attr) +
+                " that is null or undefined. " + "It must have a value that " +
+                "does not end with " + general.to_string(suffix)
+      violators[address] = rc
+			messages[address] = message
+      if prtmsg {
+        print(message)
+      }
+    } else if strings.has_suffix(v, suffix) {
+      # Add the resource and a warning message to the violators list
+      message = general.to_string(address) + " has " + general.to_string(attr) + " with value " +
+                general.to_string(v) + " that has the suffix " + general.to_string(suffix)
+      violators[address] = rc
+			messages[address] = message
+      if prtmsg {
+        print(message)
+      }
+    }
+  }
+
+  return {"resources": violators, "messages": messages}
+}
+
+### attribute_map_key_contains_items_in_list ###
+# Filter a list of resources to those with a specified map
+# attribute (attr) with key (key) that contains items in a given list of forbidden values (forbidden). This list should have strings, numbers, or booleans.
+# The key should either be a simple type like a string or number or a list.
+# Resources should be derived by applying filters to tfplan.resource_changes.
+# Set prtmsg to `true` (without quotes) if you want to print violation messages.
+# If the attribute is null or does not contain the key, no violation is generated.
+func attribute_map_key_contains_items_in_list(resources, attr, key, forbidden, prtmsg) {
+	violators = {}
+	messages = {}
+
+	for resources as address, rc {
+		# Evaluate the value (vals) of the attribute
+		vals = evaluate_attribute(rc, attr) else null
+
+		# Check if the attribute value is a map or is null.
+		if not (types.type_of(vals) is "map" or types.type_of(vals) is "null") {
+			# Add the resource and a warning message to the violators list
+			message = general.to_string(address) + " has " + general.to_string(attr) + " with value " +
+				general.to_string(vals) + " that is not a map or null"
+			violators[address] = rc
+			messages[address] = message
+			if prtmsg {
+				print(message)
+			}
+		} else if vals is not null {
+			# Check if vals contains the desired key
+      if key in keys(vals) {
+        # Get the value of the key
+			  key_value = vals[key]
+
+				forbidden_values = []
+				if types.type_of(key_value) not in ["list", "map"] {
+					if key_value in forbidden {
+						append(forbidden_values, key_value)
+					}
+				} else if types.type_of(key_value) is "list" {
+					for key_value as v {
+						if v in forbidden {
+							append(forbidden_values, v)
+						} // end if v forbidden
+					} // end for key_value
+        } else if types.type_of(key_value) is "map" {
+          # Ignore maps
+				} // end key_value type
+
+				if length(forbidden_values) > 0 {
+					# Build warning message when vals is a map
+					message = general.to_string(address) + " has " + general.to_string(attr) +
+            "with value " + general.to_string(vals) + " with key " + general.to_string(key) +
+            " containing items " + general.to_string(forbidden_values) +
+            " that are in the forbidden list: " + general.to_string(forbidden)
+					# Add the resource and a warning message to the violators list
+					violators[address] = rc
+					messages[address] = message
+					if prtmsg {
+						print(message)
+					}
+				} // end length(forbidden_values)
+			}
+		} // end if not null
+	} // end for
+
+	return {"resources": violators, "messages": messages}
+}
+
+### attribute_map_key_contains_items_not_in_list ###
+# Filter a list of resources to those with a specified map
+# attribute (attr) key (key) that contains items not in a given list of allowed values (allowed).
+# Resources should be derived by applying filters to tfplan.resource_changes.
+# Set prtmsg to `true` (without quotes) if you want to print violation messages.
+# If the attribute is null or does not contain the key, no violation is generated.
+func attribute_map_key_contains_items_not_in_list(resources, attr, key, allowed, prtmsg) {
+	violators = {}
+	messages = {}
+
+	for resources as address, rc {
+		# Evaluate the value (vals) of the attribute
+		vals = evaluate_attribute(rc, attr) else null
+
+		# Check if the attribute value is a map or is null.
+		if not (types.type_of(vals) is "map" or types.type_of(vals) is "null") {
+			# Add the resource and a warning message to the violators list
+			message = general.to_string(address) + " has attribute " + general.to_string(attr) +
+        " with value " + general.to_string(vals) + " that is not a map or null"
+			violators[address] = rc
+			messages[address] = message
+			if prtmsg {
+				print(message)
+			}
+		} else if vals is not null {
+      # Check if vals contains the desired key
+      if key in keys(vals) {
+        # Get the value of the key
+			  key_value = vals[key]
+
+				forbidden_values = []
+				if types.type_of(key_value) not in ["list", "map"] {
+					if key_value not in allowed {
+						append(forbidden_values, key_value)
+					}
+				} else if types.type_of(key_value) is "list" {
+					for key_value as v {
+						if v not in allowed {
+							append(forbidden_values, v)
+						} // end if v not allowed
+					} // end for key_value
+        } else if types.type_of(key_value) is "map" {
+            # Ignore maps
+				} // end key_value type
+
+				if length(forbidden_values) > 0 {
+					# Build warning message when vals is a map
+					message = general.to_string(address) + " has attribute " + general.to_string(attr) +
+            " with key " + general.to_string(key) + " containing items " +
+						general.to_string(forbidden_values) + " that are not in the allowed list: " +
+						general.to_string(allowed)
+					# Add the resource and a warning message to the violators list
+					violators[address] = rc
+					messages[address] = message
+					if prtmsg {
+						print(message)
+					}
+				} // end length(forbidden_values)
+			}
+		} // end if not null
+	} // end for
+
+	return {"resources": violators, "messages": messages}
 }
 
 ## STOP: TFPLAN
