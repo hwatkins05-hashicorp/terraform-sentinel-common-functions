@@ -4,12 +4,13 @@
 # Import common-functions/tfplan-functions/tfplan-functions.sentinel
 # with alias "plan"
 import "tfplan-functions" as plan
+import "tfplan/v2" as tfplan
 
 # Max Disk Size Limit (in GB)
 maxSize = 100
 
 # Get all Virtual Disks
-allVDs = plan.resources("vsphere_virtual_disk")
+allVDs = plan.resources(tfplan.resource_changes, "vsphere_virtual_disk")
 
 # Filter to disks with large size
 # Warnings will be printed for all violations since the last parameter is true

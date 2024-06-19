@@ -4,13 +4,14 @@
 # Import common-functions/tfplan-functions/tfplan-functions.sentinel
 # with alias "plan"
 import "tfplan-functions" as plan
+import "tfplan/v2" as tfplan
 
 # Allowed RDS engines
 # Include "null" to allow missing or computed values
 allowed_engines = ["mysql", "postgres"]
 
 # Get all RDS instances
-allRDSInstances = plan.resources("aws_db_instance")
+allRDSInstances = plan.resources(tfplan.resource_changes, "aws_db_instance")
 
 # Filter to RDS instances with violations
 # Warnings will be printed for all violations since the last parameter is true

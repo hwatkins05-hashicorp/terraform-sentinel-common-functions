@@ -10,13 +10,15 @@
 # Import common-functions/tfplan-functions/tfplan-functions.sentinel
 # with alias "plan"
 import "tfplan-functions" as plan
+import "tfplan/v2" as tfplan
 
 # Import common-functions/tfconfig-functions/tfconfig-functions.sentinel
 # with alias "config"
 import "tfconfig-functions" as config
+import "tfconfig/v2" as tfconfig
 
 # Get all MSSQL Databases from the plan
-allMSSQLDatabases = plan.resources("azurerm_mssql_database")
+allMSSQLDatabases = plan.resources(tfplan.resource_changes, "azurerm_mssql_database")
 
 # Filter to Azure MSSQL Databases for which extended_auditing_policy is null
 # which includes those for which this block is missing.
@@ -25,7 +27,7 @@ MSSQLDatabasesWithoutInlineAuditingPolicies = plan.attribute_is_value(
                 allMSSQLDatabases, "extended_auditing_policy", "null", false)
 
 # Get all Azure MSSQL Database extended audting policies from the config
-allMSSQLDatabaseExtendedAuditingPolicies = config.resources_by_type(
+allMSSQLDatabaseExtendedAuditingPolicies = config.resources_by_type(tfconfig.resources, 
                           "azurerm_mssql_database_extended_auditing_policy")
 
 # Iterate over the databases that do not have inline auditing policies

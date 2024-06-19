@@ -6,6 +6,7 @@
 # with alias "state"
 import "tfstate-functions" as state
 import "general-functions" as general
+import "tfconfig/v2" as tfconfig
 
 
 # Import common-functions/tfconfig-functions/tfconfig-functions.sentinel
@@ -13,7 +14,7 @@ import "general-functions" as general
 import "tfconfig-functions" as config
 
 # Get all EC2 instances
-allEC2Instances = config.resources_by_type("aws_instance")
+allEC2Instances = config.resources_by_type(tfconfig.resources, "aws_instance")
 
 # Filter to EC2 instances with violations
 # Warnings will be printed for all violations since the last parameter is true

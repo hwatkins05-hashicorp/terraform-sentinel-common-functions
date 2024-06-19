@@ -4,6 +4,7 @@
 # Import common-functions/tfplan-functions/tfplan-functions.sentinel
 # with alias "plan"
 import "tfplan-functions" as plan
+import "tfplan/v2" as tfplan
 
 ##  Parameters
 # Set the maximum number of workers when autoscaling is enabled
@@ -14,7 +15,7 @@ param max_workers default 5
 param allowed_node_type_ids default ["Standard_A1", "Standard_A2", "Standard_D1_v2", "Standard_D2_v2", "null"]
 
 # Get all Databricks clusters
-allClusters = plan.resources("databricks_cluster")
+allClusters = plan.resources(tfplan.resource_changes, "databricks_cluster")
 
 # Filter to Databricks clusters with invalid max_workers
 # But don't count null max_count as invalid since autoscale is optional

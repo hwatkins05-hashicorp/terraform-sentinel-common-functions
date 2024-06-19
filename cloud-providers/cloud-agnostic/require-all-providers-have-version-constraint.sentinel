@@ -3,10 +3,10 @@
 
 # Import common-functions/tfconfig-functions/tfconfig-functions.sentinel
 # with alias "config"
-import "tfconfig-functions" as config
+import "tfconfig/v2" as tfconfig
 
 # Get all providers
-allProviders = config.all_providers()
+allProviders = tfconfig.providers
 
 #Get all providers tht has version_constraint as undefined or empty.
 #think it as : (mc.version_constrain else "") is ""

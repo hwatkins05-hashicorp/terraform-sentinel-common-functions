@@ -5,9 +5,10 @@
 # Import common-functions/tfplan-functions/tfplan-functions.sentinel
 # with alias "plan"
 import "tfplan-functions" as plan
+import "tfplan/v2" as tfplan
 
 # Get all Sagemaker notebooks
-allSagemakerNotebooks = plan.resources("aws_sagemaker_notebook_instance")
+allSagemakerNotebooks = plan.resources(tfplan.resource_changes, "aws_sagemaker_notebook_instance")
 
 # Filter to Sagemaker notebooks that have root_access set to "Enabled"
 # or missing.

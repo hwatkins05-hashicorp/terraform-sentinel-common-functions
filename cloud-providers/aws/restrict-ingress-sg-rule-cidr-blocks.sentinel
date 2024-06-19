@@ -31,7 +31,7 @@ violatingSGRules = plan.attribute_contains_items_from_list(SGIngressRules,
                   "cidr_blocks",forbidden_cidrs, true)
 
 # Get all Security Groups
-allSGs = plan.resources("aws_security_group")
+allSGs = plan.resources(tfplan.resource_changes, "aws_security_group")
 
 # Validate Security Groups
 violatingSGsCount = 0

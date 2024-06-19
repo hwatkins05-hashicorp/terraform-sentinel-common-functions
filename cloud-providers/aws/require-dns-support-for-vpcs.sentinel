@@ -5,11 +5,12 @@
 # Import common-functions/tfplan-functions/tfplan-functions.sentinel
 # with alias "plan"
 import "tfplan-functions" as plan
+import "tfplan/v2" as tfplan
 import "general-functions" as general
 
 
 # Get all VPCs
-allVPCs = plan.resources("aws_vpc")
+allVPCs = plan.resources(tfplan.resource_changes, "aws_vpc")
 
 # Filter to VPCs with violations
 # Warnings will be printed for all violations since the last parameter is true

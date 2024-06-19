@@ -5,6 +5,7 @@
 # Import common-functions/tfplan-functions/tfplan-functions.sentinel
 # with alias "plan"
 import "tfplan-functions" as plan
+import "tfplan/v2" as tfplan
 
 ## Parameters
 # Set maximum pool size
@@ -20,7 +21,7 @@ param allowed_types default [
 ]
 
 # Get all GKE clusters
-allGKEClusters = plan.resources("google_container_cluster")
+allGKEClusters = plan.resources(tfplan.resource_changes, "google_container_cluster")
 
 # Filter to GKE clusters with invalid initial_node_count
 # But don't count null node_count as invalid
@@ -41,7 +42,7 @@ GKEClustersWithInvalidMachineType = plan.attribute_not_in_list(allGKEClusters,
 clusters_with_invalid_machine_type = length(GKEClustersWithInvalidMachineType["messages"])
 
 # Get all GKE node pools
-allGKENodePools = plan.resources("google_container_node_pool")
+allGKENodePools = plan.resources(tfplan.resource_changes, "google_container_node_pool")
 
 # Filter to GKE node pools with invalid initial_node_count
 # But don't count null initial_node_count as invalid

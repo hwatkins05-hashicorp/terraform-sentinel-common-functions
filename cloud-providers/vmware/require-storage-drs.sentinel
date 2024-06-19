@@ -4,9 +4,10 @@
 # Import common-functions/tfplan-functions/tfplan-functions.sentinel
 # with alias "plan"
 import "tfplan-functions" as plan
+import "tfplan/v2" as tfplan
 
 # Get all datastore clusters
-allDatastoreClusters = plan.resources("vsphere_datastore_cluster")
+allDatastoreClusters = plan.resources(tfplan.resource_changes, "vsphere_datastore_cluster")
 
 # Filter to datastore clusters that do not enable storage DRS
 # Warnings will be printed for all violations since the last parameter is true

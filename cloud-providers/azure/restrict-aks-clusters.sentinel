@@ -5,6 +5,7 @@
 # Import common-functions/tfplan-functions/tfplan-functions.sentinel
 # with alias "plan"
 import "tfplan-functions" as plan
+import "tfplan/v2" as tfplan
 
 ## Parameters
 # Set maximum pool size
@@ -13,7 +14,7 @@ param max_pool_size default 10
 param allowed_sizes default ["Standard_A1", "Standard_A2", "Standard_D1_v2", "Standard_D2_v2"]
 
 # Get all AKS clusters
-allAKSClusters = plan.resources("azurerm_kubernetes_cluster")
+allAKSClusters = plan.resources(tfplan.resource_changes, "azurerm_kubernetes_cluster")
 
 # Filter to AKS clusters with invalid node_count
 # But don't count null node_count as invalid
@@ -46,7 +47,7 @@ AKSClustersWithInvalidVMSize = plan.attribute_not_in_list(allAKSClusters,
 clusters_with_invalid_vm_size = length(AKSClustersWithInvalidVMSize["messages"])
 
 # Get all AKS node pools
-allAKSNodePools = plan.resources("azurerm_kubernetes_cluster_node_pool")
+allAKSNodePools = plan.resources(tfplan.resource_changes, "azurerm_kubernetes_cluster_node_pool")
 
 # Filter to AKS node pools with invalid node_count
 # But don't count null node_count as invalid

@@ -38,7 +38,7 @@ violatingMultiPrefixSGRules = plan.attribute_contains_items_from_list(
     SGInboundAllowRules, "source_address_prefixes", forbidden_cidrs, true)
 
 # Get all Security Groups
-allSGs = plan.resources("azurerm_network_security_group")
+allSGs = plan.resources(tfplan.resource_changes, "azurerm_network_security_group")
 
 # Validate Security Groups
 violatingSGsCount = 0

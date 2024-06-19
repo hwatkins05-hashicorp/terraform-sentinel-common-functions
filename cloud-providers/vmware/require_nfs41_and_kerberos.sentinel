@@ -4,9 +4,10 @@
 # Import common-functions/tfplan-functions/tfplan-functions.sentinel
 # with alias "plan"
 import "tfplan-functions" as plan
+import "tfplan/v2" as tfplan
 
 # Get all NAS Datastores
-allDatastores = plan.resources("vsphere_nas_datastore")
+allDatastores = plan.resources(tfplan.resource_changes, "vsphere_nas_datastore")
 
 # Filter to Datastores that are not NFS
 # Warnings will be printed for all violations since the last parameter is true

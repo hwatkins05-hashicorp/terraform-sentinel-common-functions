@@ -5,10 +5,11 @@
 # Import common-functions/tfplan-functions/tfplan-functions.sentinel
 # with alias "plan"
 import "tfplan-functions" as plan
+import "tfplan/v2" as tfplan
 import "general-functions" as general
 
 # Get all Security Rule Groups
-allSRGs = plan.resources("panos_security_rule_group")
+allSRGs = plan.resources(tfplan.resource_changes, "panos_security_rule_group")
 
 # Validate Security Rule Groups
 violatingSRGsCount = 0

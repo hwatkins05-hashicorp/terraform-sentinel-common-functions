@@ -14,6 +14,7 @@
 # Import common-functions/tfconfig-functions/tfconfig-functions.sentinel
 # with alias "config"
 import "tfconfig-functions" as config
+import "tfconfig/v2" as tfconfig
 
 # Strings import
 import "strings"
@@ -63,7 +64,7 @@ validated = true
 # Iterate over restricted resource types
 for restricted_resources as _, type {
   # Find all resources of the given type
-  all_resources = config.resources_by_type(type)
+  all_resources = config.resources_by_type(tfconfig.resources, type)
 
   # Iterate over the resources to find module source
   for all_resources as address, r {

@@ -26,7 +26,7 @@ import "aws-functions" as aws
 param allowed_regions default ["us-east-1", "us-west-1"]
 
 # Get all AWS providers
-all_aws_providers = config.providers_by_type("aws")
+all_aws_providers = config.providers_by_type(tfconfig.providers, "aws")
 
 # Process all AWS providers
 validated_providers =

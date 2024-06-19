@@ -5,13 +5,15 @@
 
 # Import Functions used below
 import "tfplan-functions" as plan
+import "tfplan/v2" as tfplan
 import "tfconfig-functions" as config
 import "general-functions" as general
+import "tfconfig/v2" as tfconfig
 import "strings"
 
 # Get all S3 buckets resources
-allS3BucketsEncryptionConfig = config.resources_by_type("aws_s3_bucket_server_side_encryption_configuration")
-allS3Buckets = plan.resources("aws_s3_bucket")
+allS3BucketsEncryptionConfig = config.resources_by_type(tfconfig.resources, "aws_s3_bucket_server_side_encryption_configuration")
+allS3Buckets = plan.resources(tfplan.resource_changes, "aws_s3_bucket")
 
 #Variables to support check of legacy S3 syntax vs new Seperate S3 Resources being used
 legacy = false

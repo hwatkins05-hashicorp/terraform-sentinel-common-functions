@@ -5,9 +5,10 @@
 # Import common-functions/tfplan-functions/tfplan-functions.sentinel with
 # alias "plan"
 import "tfplan-functions" as plan
+import "tfplan/v2" as tfplan
 
 # Get all Azure app services
-allAzureAppServices = plan.resources("azurerm_app_service")
+allAzureAppServices = plan.resources(tfplan.resource_changes, "azurerm_app_service")
 
 # Filter to Azure app services with violations
 # Warnings will be printed for all violations since the last parameter is true

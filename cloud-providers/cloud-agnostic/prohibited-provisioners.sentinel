@@ -5,12 +5,13 @@
 # with alias "config"
 import "tfconfig-functions" as config
 import "general-functions" as general
+import "tfconfig/v2" as tfconfig
 
 # List of prohibited provisioners
 prohibited_list = ["local-exec", "remote-exec"]
 
 # Get all provisioners
-allProvisioners = config.all_provisioners()
+allProvisioners = tfconfig.provisioners
 
 # Filter to provisioners with violations
 # Warnings will not be printed for violations since the last parameter is false
