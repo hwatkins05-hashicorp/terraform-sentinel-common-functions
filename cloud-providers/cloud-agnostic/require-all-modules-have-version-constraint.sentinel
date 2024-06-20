@@ -3,10 +3,11 @@
 
 
 import "tfconfig-functions" as config
+import "tfconfig/v2" as tfconfig
 
 # Get all modules
 
-allModuleCalls = config.all_module_calls()
+allModuleCalls = tfconfig.module_calls
 
 #Get all module calls tht have version_constraint as undefined or empty.
 #think it as : (mc.version_constrain else "") is ""

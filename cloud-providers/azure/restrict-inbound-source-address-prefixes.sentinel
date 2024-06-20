@@ -55,7 +55,7 @@ violatingMultiPrefixSGRules = collection.reduce(SGInboundAllowRules, func(result
 })
 
 # Get all Security Groups
-allSGs = plan.resources("azurerm_network_security_group")
+allSGs = plan.resources(tfplan.resource_changes, "azurerm_network_security_group")
 
 # Validate Security Groups
 violatingSGsCount = 0

@@ -5,6 +5,7 @@
 # Import common-functions/tfplan-functions/tfplan-functions.sentinel
 # with alias "plan"
 import "tfplan-functions" as plan
+import "tfplan/v2" as tfplan
 import "general-functions" as general
 
 # Mandatory tags
@@ -15,7 +16,7 @@ mandatory_tags = ["Environment"]
 allowed_environments = ["dev", "qa", "prod"]
 
 # Get all EC2 instances
-allEC2Instances = plan.resources("aws_instance")
+allEC2Instances = plan.resources(tfplan.resource_changes, "aws_instance")
 
 # Filter to EC2 instances that are missing the environment tag
 # Warnings will be printed for all violations since the last parameter is true

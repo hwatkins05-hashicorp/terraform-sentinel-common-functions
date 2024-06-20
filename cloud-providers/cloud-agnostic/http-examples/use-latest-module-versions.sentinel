@@ -35,6 +35,7 @@
 # Import common-functions/tfconfig-functions/tfconfig-functions.sentinel
 # with alias "config"
 import "tfconfig-functions" as config
+import "tfconfig/v2" as tfconfig
 
 # Standard Imports
 import "http"
@@ -135,7 +136,7 @@ func validate_modules() {
 
   # Iterate over all modules in the tfconfig/v2 import
   for allModuleAddresses as module_address {
-    moduleCalls = config.module_calls_in_module(module_address)
+    moduleCalls = config.module_calls_in_module(tfconfig.module_calls, module_address)
     # Iterate over modules of the current module
     for moduleCalls as index, m {
       # Check if module is in the PMR

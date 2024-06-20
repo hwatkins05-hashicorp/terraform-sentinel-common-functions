@@ -11,6 +11,7 @@
 # with alias "config"
 import "tfconfig-functions" as config
 import "general-functions" as general
+import "tfconfig/v2" as tfconfig
 
 # Standard strings import
 import "strings"
@@ -19,7 +20,7 @@ import "strings"
 allowed_list = ["aws", "local", "null", "random", "terraform", "tfe"]
 
 # Get all providers
-allProviders = config.all_providers()
+allProviders = tfconfig.providers
 
 # Filter to providers with violations
 # Warnings will not be printed for violations since the last parameter is false
@@ -37,7 +38,7 @@ prohibitedResourcesCount = 0
 prohibitedDataSourcesCount = 0
 
 # Find all resources
-allResources = config.all_resources()
+allResources = config.all_resources(tfconfig.resources)
 
 # Filter to disallowed resources
 prohibitedResources = filter allResources as address, r {

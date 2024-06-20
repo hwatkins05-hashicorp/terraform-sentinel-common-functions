@@ -6,9 +6,10 @@
 # Import common-functions/tfconfig-functions/tfconfig-functions.sentinel
 # with alias "config"
 import "tfconfig-functions" as config
+import "tfconfig/v2" as tfconfig
 
 # Get all modules called from root module
-rootModuleCalls = config.module_calls_in_module("")
+rootModuleCalls = config.module_calls_in_module(tfconfig.module_calls, "")
 
 func evaluate_variables() {
   for rootModuleCalls as address, m {

@@ -103,7 +103,7 @@ for aws_security_group_rules as address, sgr {
 } // end of SG Rules
 
 # Get all Security Groups
-allSGs = plan.resources("aws_security_group")
+allSGs = plan.resources(tfplan.resource_changes, "aws_security_group")
 
 # Validate Security Groups
 violatingSGsCount = 0

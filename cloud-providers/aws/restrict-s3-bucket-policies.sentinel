@@ -13,6 +13,7 @@ import "tfconfig-functions" as config
 import "evaluating-functions" as eval
 import "filtering-functions" as filters
 import "collection"
+import "tfconfig/v2" as tfconfig
 
 # Restricted S3 Actions
 restricted_s3_actions = ["s3:ListBucket", "s3:GetObject", "s3:PutObject"]
@@ -21,7 +22,7 @@ restricted_s3_actions = ["s3:ListBucket", "s3:GetObject", "s3:PutObject"]
 allowed_vpc_endpoints = ["vpce-111111", "vpce-222222", "vpce-333333"]
 
 # Get all S3 buckets in configuration
-allS3Buckets = config.resources_by_type("aws_s3_bucket")
+allS3Buckets = config.resources_by_type(tfconfig.resources, "aws_s3_bucket")
 
 # Filter to S3 buckets with the policy argument set since it is not mandatory.
 # Don't print violation messages
@@ -51,7 +52,7 @@ if length(S3BucketsWithInvalidPolicy) > 0 {
 }
 
 # Get all S3 bucket policies in configuration
-allS3BucketPolicies = config.resources_by_type("aws_s3_bucket_policy")
+allS3BucketPolicies = config.resources_by_type(tfconfig.resources, "aws_s3_bucket_policy")
 
 # Filter to S3 bucket policies that set policy but do not set it to an instance
 # of the aws_iam_policy_document data source.

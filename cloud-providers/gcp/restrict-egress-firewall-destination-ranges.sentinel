@@ -4,6 +4,7 @@
 # Import common-functions/tfplan-functions/tfplan-functions.sentinel
 # with alias "plan"
 import "tfplan-functions" as plan
+import "tfplan/v2" as tfplan
 # import "filtering-functions" as filters
 import "evaluating-functions" as eval
 import "collection"
@@ -12,7 +13,7 @@ import "collection"
 forbidden_cidrs = ["0.0.0.0/0"]
 
 # Get all Firewalls
-allFirewalls = plan.resources("google_compute_firewall")
+allFirewalls = plan.resources(tfplan.resource_changes, "google_compute_firewall")
 
 # Filter to egress firewalls with violations
 # We only want the resources map from the returned map

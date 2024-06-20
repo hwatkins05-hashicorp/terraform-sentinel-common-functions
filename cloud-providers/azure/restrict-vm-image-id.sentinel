@@ -4,6 +4,7 @@
 # Import common-functions/tfplan-functions/tfplan-functions.sentinel
 # with alias "plan"
 import "tfplan-functions" as plan
+import "tfplan/v2" as tfplan
 import "collection"
 import "evaluating-functions" as eval
 
@@ -12,7 +13,7 @@ import "evaluating-functions" as eval
 image_id_regex = "^(/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/(.*)/providers/Microsoft.Compute/images/(.*)|null)$"
 
 # Get all Azure VMs using azurerm_virtual_machine
-allAzureVMs = plan.resources("azurerm_virtual_machine")
+allAzureVMs = plan.resources(tfplan.resource_changes, "azurerm_virtual_machine")
 
 # Filter to Azure VMs with violations that use azurerm_virtual_machine
 # Warnings will be printed for all violations since the last parameter is true
@@ -24,7 +25,7 @@ violatingAzureVMs = collection.reduce(allAzureVMs, func(result, rc) {
 }, [])
 
 # Get all Azure VMs using azurerm_windows_virtual_machine
-allAzureWindowsVMs = plan.resources("azurerm_windows_virtual_machine")
+allAzureWindowsVMs = plan.resources(tfplan.resource_changes, "azurerm_windows_virtual_machine")
 
 # Filter to Azure VMs with violations that use azurerm_windows_virtual_machine
 # Warnings will be printed for all violations since the last parameter is true
@@ -36,7 +37,7 @@ violatingAzureWindowsVMs = collection.reduce(allAzureWindowsVMs, func(result, rc
 }, [])
 
 # Get all Azure VMs using azurerm_linux_virtual_machine
-allAzureLinuxVMs = plan.resources("azurerm_linux_virtual_machine")
+allAzureLinuxVMs = plan.resources(tfplan.resource_changes, "azurerm_linux_virtual_machine")
 
 # Filter to Azure VMs with violations that use azurerm_linux_virtual_machine
 # Warnings will be printed for all violations since the last parameter is true

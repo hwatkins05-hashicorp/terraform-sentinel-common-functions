@@ -85,7 +85,7 @@ func get_assumed_roles() {
   assumed_roles = {}
 
   # Get all AWS provider aliases
-  aws_providers = config.providers_by_type("aws")
+  aws_providers = config.providers_by_type(tfconfig.providers, "aws")
 
   # Iterate through all AWS provider aliases
   for aws_providers as address, data {

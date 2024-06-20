@@ -6,9 +6,10 @@
 # Import common-functions/tfplan-functions/tfplan-functions.sentinel with
 # alias "plan"
 import "tfplan-functions" as plan
+import "tfplan/v2" as tfplan
 
 # Get all Azure Security Center Pricings
-allAzureSecCenterSubPricings = plan.resources("azurerm_security_center_subscription_pricing")
+allAzureSecCenterSubPricings = plan.resources(tfplan.resource_changes, "azurerm_security_center_subscription_pricing")
 
 # Filter to Azure Security Center Pricings for Virtual Machines
 # Warnings will not be printed for violations since the last parameter is false

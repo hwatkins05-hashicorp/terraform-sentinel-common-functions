@@ -5,13 +5,14 @@
 
 # Import Functions used below
 import "tfplan-functions" as plan
+import "tfplan/v2" as tfplan
 import "tfconfig-functions" as config
 import "general-functions" as general
 import "strings"
 
 # Get all S3 buckets resources
-allS3BucketsACL = config.resources_by_type("aws_s3_bucket_acl")
-allS3Buckets = plan.resources("aws_s3_bucket")
+allS3BucketsACL = config.resources_by_type(tfconfig.resources, "aws_s3_bucket_acl")
+allS3Buckets = plan.resources(tfplan.resource_changes, "aws_s3_bucket")
 
 #Variables to support check of legacy S3 syntax vs new Seperate S3 Resources being used
 legacy = false
