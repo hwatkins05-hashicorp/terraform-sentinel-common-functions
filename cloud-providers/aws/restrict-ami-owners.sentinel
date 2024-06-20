@@ -4,6 +4,7 @@
 # Import common-functions/tfstate-functions/tfstate-functions.sentinel
 # with alias "state"
 import "tfstate-functions" as state
+import "tfstate/v2" as tfstate
 import "general-functions" as general
 import "evaluating-functions" as eval
 import "collection"
@@ -14,7 +15,7 @@ import "collection"
 allowed_owners = ["self", "099720109477", "099720109478"]
 
 # Get all AMIs
-allAMIs = state.datasources("aws_ami")
+allAMIs = state.datasources(tfstate.resources, "aws_ami")
 
 # Filter to AMIs with violations
 # Warnings will be printed for all violations since the last parameter is true

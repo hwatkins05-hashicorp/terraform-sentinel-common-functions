@@ -362,6 +362,7 @@ func plan_resources_being_destroyed(resource_changes) {
   }
 }
 
+# TODO: Not used.
 ### datasources_being_destroyed ###
 # Find all data sources being destroyed but not recreated using the tfplan/v2 import.
 # Technically, this returns a map of resource changes.

@@ -4,6 +4,7 @@
 # Import common-functions/tfstate-functions/tfstate-functions.sentinel
 # with alias "state"
 import "tfstate-functions" as state
+import "tfstate/v2" as tfstate
 import "general-functions" as general
 
 
@@ -11,7 +12,7 @@ import "general-functions" as general
 param forbidden_actions default ["iam:Create*", "iam:Delete*"]
 
 # Get all IAM policy document data sources
-allIAMPolicyDocs = state.datasources("aws_iam_policy_document")
+allIAMPolicyDocs = state.datasources(tfstate.resources, "aws_iam_policy_document")
 
 # Filter to IAM policy documents with violations
 validated = true

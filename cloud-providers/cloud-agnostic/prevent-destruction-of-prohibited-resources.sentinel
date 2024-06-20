@@ -4,12 +4,13 @@
 # Import common-functions/tfplan-functions/tfplan-functions.sentinel
 # with alias "plan"
 import "tfplan-functions" as plan
+import "tfplan/v2" as tfplan
 
 # List of prohibited resources
 prohibited_list = ["aws_vpc", "azurerm_virtual_network", "google_compute_network"]
 
 # Get all Resources
-resourcesBeingDestroyed = plan.resources_being_destroyed()
+resourcesBeingDestroyed = plan.resources_being_destroyed(tfplan.resource_changes)
 
 # Filter to resources with types in prohibited_list and Print violation messages
 violatingResources = filter resourcesBeingDestroyed as address, rc {

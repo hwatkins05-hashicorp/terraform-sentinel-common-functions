@@ -7,11 +7,12 @@
 # Import common-functions/tfplan-functions/tfplan-functions.sentinel
 # with alias "plan"
 import "tfplan-functions" as plan
+import "tfplan/v2" as tfplan
 import "general-functions" as general
 
 
 # Get all resources being destroyed
-resourcesBeingDestroyed = plan.resources_being_destroyed()
+resourcesBeingDestroyed = plan.resources_being_destroyed(tfplan.resource_changes)
 
 # Filter to RDS instances being destroyed
 RDSInstancesBeingDestroyed = filter resourcesBeingDestroyed as address, rc {
