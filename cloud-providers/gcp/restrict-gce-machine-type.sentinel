@@ -4,6 +4,8 @@
 # Import common-functions/tfplan-functions/tfplan-functions.sentinel
 # with alias "plan"
 import "tfplan-functions" as plan
+import "evaluating-functions" as eval
+import "collection"
 
 # Allowed GCE Instance Types
 # Include "null" to allow missing or computed values
@@ -14,11 +16,15 @@ allGCEInstances = plan.resources("google_compute_instance")
 
 # Filter to GCE instances with violations
 # Warnings will be printed for all violations since the last parameter is true
-violatingGCEInstances = plan.attribute_not_in_list(allGCEInstances,
-                        "machine_type", allowed_types, true)
+violatingGCEInstances = collection.reduce(allGCEInstances, func(result, rc) {
+  if eval.attribute_not_in_list(rc, "machine_type", allowed_types) is true {
+    append(result, rc)
+  }
+  return result
+}, [])
 
 # Count violations
-violations = length(violatingGCEInstances["messages"])
+violations = length(violatingGCEInstances)
 
 # Main rule
 main = rule {

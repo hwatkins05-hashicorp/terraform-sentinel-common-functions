@@ -4,6 +4,8 @@
 # Import common-functions/tfplan-functions/tfplan-functions.sentinel
 # with alias "plan"
 import "tfplan-functions" as plan
+import "collection"
+import "evaluating-functions" as eval
 
 # Image ID Regex
 # Include "null" to allow missing or computed values
@@ -14,29 +16,41 @@ allAzureVMs = plan.resources("azurerm_virtual_machine")
 
 # Filter to Azure VMs with violations that use azurerm_virtual_machine
 # Warnings will be printed for all violations since the last parameter is true
-violatingAzureVMs = plan.attribute_does_not_match_regex(allAzureVMs,
-                    "storage_image_reference.0.id", image_id_regex, true)
+violatingAzureVMs = collection.reduce(allAzureVMs, func(result, rc) {
+  if eval.attribute_does_not_match_regex(rc, "storage_image_reference.0.id", image_id_regex) is true {
+    append(result, rc)
+  }
+  return result
+}, [])
 
 # Get all Azure VMs using azurerm_windows_virtual_machine
 allAzureWindowsVMs = plan.resources("azurerm_windows_virtual_machine")
 
 # Filter to Azure VMs with violations that use azurerm_windows_virtual_machine
 # Warnings will be printed for all violations since the last parameter is true
-violatingAzureWindowsVMs = plan.attribute_does_not_match_regex(allAzureWindowsVMs,
-                    "source_image_id", image_id_regex, true)
+violatingAzureWindowsVMs = collection.reduce(allAzureWindowsVMs, func(result, rc) {
+  if eval.attribute_does_not_match_regex(rc, "source_image_id", image_id_regex) is true {
+    append(result, rc)
+  }
+  return result
+}, [])
 
 # Get all Azure VMs using azurerm_linux_virtual_machine
 allAzureLinuxVMs = plan.resources("azurerm_linux_virtual_machine")
 
 # Filter to Azure VMs with violations that use azurerm_linux_virtual_machine
 # Warnings will be printed for all violations since the last parameter is true
-violatingAzureLinuxVMs = plan.attribute_does_not_match_regex(allAzureLinuxVMs,
-                    "source_image_id", image_id_regex, true)
+violatingAzureLinuxVMs = collection.reduce(allAzureLinuxVMs, func(result, rc) {
+  if eval.attribute_does_not_match_regex(rc, "source_image_id", image_id_regex) is true {
+    append(result, rc)
+  }
+  return result
+}, [])
 
 # Main rule
-violations = length(violatingAzureVMs["messages"]) +
-             length(violatingAzureWindowsVMs["messages"]) +
-             length(violatingAzureLinuxVMs["messages"])
+violations = length(violatingAzureVMs) +
+             length(violatingAzureWindowsVMs) +
+             length(violatingAzureLinuxVMs)
 
 main = rule {
   violations is 0

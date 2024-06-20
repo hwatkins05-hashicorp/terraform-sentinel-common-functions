@@ -10,6 +10,9 @@ import "tfplan-functions" as plan
 # Import common-functions/tfconfig-functions/tfconfig-functions.sentinel
 # with alias "config"
 import "tfconfig-functions" as config
+import "evaluating-functions" as eval
+import "filtering-functions" as filters
+import "collection"
 
 # Restricted S3 Actions
 restricted_s3_actions = ["s3:ListBucket", "s3:GetObject", "s3:PutObject"]
@@ -22,17 +25,27 @@ allS3Buckets = config.resources_by_type("aws_s3_bucket")
 
 # Filter to S3 buckets with the policy argument set since it is not mandatory.
 # Don't print violation messages
-S3BucketsWithPolicy = config.attribute_not_in_list(
-  allS3Buckets, "config.policy", ["null"], false)
+S3BucketsWithPolicy = collection.reduce(allS3Buckets, func(result, rc) {
+  if eval.attribute_not_in_list(rc, "config.policy", ["null"]) is true {
+    append(result, rc)
+  }
+  return result
+}, [])
 
 # Filter to S3 buckets that set policy but do not set it to an instance of
 # the aws_iam_policy_document data source.
 # Print violation messages which will now only be for those buckets that
 # set policy to something other than an instance of aws_iam_policy_document
-S3BucketsWithInvalidPolicy = config.attribute_does_not_match_regex(
-                             S3BucketsWithPolicy["items"], "config.policy",
-                             "^data\\.aws_iam_policy_document\\.(.*)$", true)
-if length(S3BucketsWithInvalidPolicy["messages"]) > 0 {
+S3BucketsWithInvalidPolicy = collection.reduce(S3BucketsWithPolicy, func(result, rc) {
+  if eval.attribute_does_not_match_regex(
+                             rc, "config.policy",
+                             "^data\\.aws_iam_policy_document\\.(.*)$") is true {
+                              append(result, rc)
+                             }
+                             return result
+}, [])
+
+if length(S3BucketsWithInvalidPolicy) > 0 {
   print("All aws_s3_bucket resources must get their policy from an instance of",
         "the data_iam_policy_document data source.")
 }
@@ -46,10 +59,14 @@ allS3BucketPolicies = config.resources_by_type("aws_s3_bucket_policy")
 # other than an instance of aws_iam_policy_document
 # Note that we do not need to screen out instances of aws_s3_bucket_policy that
 # are missing the policy argument because it is mandatory.
-S3BucketPoliciesWithInvalidPolicy = config.attribute_does_not_match_regex(
-                                allS3BucketPolicies, "config.policy",
-                                "^data\\.aws_iam_policy_document\\.(.*)$", true)
-if length(S3BucketPoliciesWithInvalidPolicy["messages"]) > 0 {
+S3BucketPoliciesWithInvalidPolicy = collection.reduce(allS3BucketPolicies, func(result, rc) {
+  if eval.attribute_does_not_match_regex(rc, "config.policy", "^data\\.aws_iam_policy_document\\.(.*)$") is true {
+    append(result, rc)
+  }
+  return result
+}, [])
+
+if length(S3BucketPoliciesWithInvalidPolicy) > 0 {
   print("All aws_s3_bucket_policy resources must get their policy from",
         "an instance of the data_iam_policy_document data source.")
 }
@@ -65,9 +82,15 @@ for allIAMPolicyDocuments as address, pd {
   statements = plan.blocks(pd, "statement")
 
   # Determine if any statements include restricted S3 actions
-  statementsWithS3actions = plan.attribute_contains_items_from_list(
-                            statements, "actions", restricted_s3_actions, false)
-  if length(statementsWithS3actions["resources"]) is 0 {
+  statementsWithS3actions = collection.reduce(statements, func(result, rc) {
+    if eval.attribute_contains_items_from_list(
+                            rc, "actions", restricted_s3_actions) is true {
+                              append(result, rc)
+                            }
+                            return result
+  }, [])
+  
+  if length(statementsWithS3actions) is 0 {
     # No statements included restricted S3 actions, so policy document is ok.
     continue
   }
@@ -76,12 +99,18 @@ for allIAMPolicyDocuments as address, pd {
   # in the current policy document has the desired conditions.
   for restricted_s3_actions as s3_action {
     # Filter to statements of the current policy document that have an S3 action
-    statementsWithS3action = plan.attribute_contains_items_from_list(
-          statements, "actions", [s3_action], false)
+    statementsWithS3action = collection.reduce(statements, func(result, rc) {
+      if eval.attribute_contains_items_from_list(
+          rc, "actions", [s3_action]) is true {
+            append(result, rc)
+          }
+          return result
+    }, [])
+    
 
     # Search for deny statement with aws:SecureTransport set to false
     foundSecureTransportCondition = false
-    for statementsWithS3action["resources"] as _, statement {
+    for statementsWithS3action as _, statement {
       if foundSecureTransportCondition {
         break
       }
@@ -109,7 +138,7 @@ for allIAMPolicyDocuments as address, pd {
     # Search for deny statement with valid aws:SourceVpce
     foundVPCECondition = false
     foundInvalidVPCE = false
-    for statementsWithS3action["resources"] as _, statement {
+    for statementsWithS3action as _, statement {
       if foundVPCECondition {
         break
       }
@@ -155,8 +184,8 @@ for allIAMPolicyDocuments as address, pd {
 } // end for allIAMPolicyDocuments
 
 # Main rule
-validated = length(S3BucketsWithInvalidPolicy["messages"]) is 0 and
-            length(S3BucketPoliciesWithInvalidPolicy["messages"]) is 0 and
+validated = length(S3BucketsWithInvalidPolicy) is 0 and
+            length(S3BucketPoliciesWithInvalidPolicy) is 0 and
             policyDocumentsValidated
 main = rule {
   validated is true
