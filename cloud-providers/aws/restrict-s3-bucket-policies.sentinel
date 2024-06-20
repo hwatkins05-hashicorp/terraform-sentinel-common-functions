@@ -6,6 +6,7 @@
 # Import common-functions/tfplan-functions/tfplan-functions.sentinel
 # with alias "plan"
 import "tfplan-functions" as plan
+import "tfplan/v2" as tfplan
 
 # Import common-functions/tfconfig-functions/tfconfig-functions.sentinel
 # with alias "config"
@@ -56,7 +57,7 @@ if length(S3BucketPoliciesWithInvalidPolicy["messages"]) > 0 {
 }
 
 # Find instances of aws_iam_policy_document
-allIAMPolicyDocuments = plan.datasources("aws_iam_policy_document")
+allIAMPolicyDocuments = plan.datasources(tfplan.resource_changes, "aws_iam_policy_document")
 
 # Validate IAM Policy Documents
 policyDocumentsValidated = true

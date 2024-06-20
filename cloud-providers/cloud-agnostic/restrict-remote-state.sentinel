@@ -21,6 +21,7 @@
 # Import common-functions/tfstate-functions/tfstate-functions.sentinel
 # with alias "state"
 import "tfstate-functions" as state
+import "tfstate/v2" as tfstate
 import "general-functions" as general
 
 # Use standard tfrun import
@@ -61,7 +62,7 @@ if not matching_env_found {
 }
 
 # Find instances of remote state data sources
-remoteStates = state.datasources("terraform_remote_state")
+remoteStates = state.datasources(tfstate.resources, "terraform_remote_state")
 
 # Filter remote state data sources to violations
 violatingRemoteStates = state.attribute_not_in_list(remoteStates,

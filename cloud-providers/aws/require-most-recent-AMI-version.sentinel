@@ -5,6 +5,7 @@
 # Import common-functions/tfstate-functions/tfstate-functions.sentinel
 # with alias "state"
 import "tfstate-functions" as state
+import "tfstate/v2" as tfstate
 import "general-functions" as general
 import "tfconfig/v2" as tfconfig
 
@@ -28,7 +29,7 @@ violatingEC2Instances = config.attribute_does_not_match_regex(allEC2Instances,
 EC2InstanceViolations = length(violatingEC2Instances["messages"])
 
 # Get all aws_ami data sources
-allAMIs = state.datasources("aws_ami")
+allAMIs = state.datasources(tfstate.resources, "aws_ami")
 
 # Filter to AMIs with violations
 violatingAMIs = state.attribute_is_not_value(allAMIs, "most_recent", true, true)
