@@ -5,6 +5,8 @@
 # with alias "state"
 import "tfstate-functions" as state
 import "general-functions" as general
+import "evaluating-functions" as eval
+import "collection"
 
 
 # Allowed Owners
@@ -16,10 +18,14 @@ allAMIs = state.datasources("aws_ami")
 
 # Filter to AMIs with violations
 # Warnings will be printed for all violations since the last parameter is true
-violatingAMIs =
-  state.attribute_contains_items_not_in_list(allAMIs, "owners", allowed_owners, true)
+violatingAMIs = collection.reduce(allAMIs, func(result, rc) {
+  if eval.attribute_contains_items_not_in_list(rc, "owners", allowed_owners) is true {
+    append(result, rc)
+  }
+  return result
+}, [])
 
 # Main rule
 main = rule {
-  length(violatingAMIs["messages"]) is 0
+  length(violatingAMIs) is 0
 }
