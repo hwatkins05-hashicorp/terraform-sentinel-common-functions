@@ -3,19 +3,19 @@
 #------------------------------------------------------------------------------
 mock "tfplan-functions" {
   module {
-    source = "../../../../common-functions/tfplan-functions/tfplan-functions.sentinel"
+    source = "../../../../modules/tfplan-functions/tfplan-functions.sentinel"
   }
 }
 
 mock "general-functions" {
   module {
-    source = "../../../../common-functions/general-functions/general-functions.sentinel"
+    source = "../../../../modules/general-functions/general-functions.sentinel"
   }
 }
 
 mock "tfconfig-functions" {
   module {
-    source = "../../../../common-functions/tfconfig-functions/tfconfig-functions.sentinel"
+    source = "../../../../modules/tfconfig-functions/tfconfig-functions.sentinel"
   }
 }
 

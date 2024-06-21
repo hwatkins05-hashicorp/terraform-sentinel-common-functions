@@ -786,6 +786,8 @@ func attribute_matches_regex(resources, attr, expr, prtmsg) {
   return {"resources": violators, "messages": messages}
 }
 
+## TO-DO: ADD TO EVALUATING
+
 ### attribute_does_not_have_prefix ###
 # Filter a list of resources to those with a specified
 # attribute (attr) that does not have a given prefix.

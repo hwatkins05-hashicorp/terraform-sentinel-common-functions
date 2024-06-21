@@ -1,18 +1,26 @@
 module "tfplan-functions" {
-    source = "../../common-functions/tfplan-functions/tfplan-functions.sentinel"
+    source = "../../modules/tfplan-functions/tfplan-functions.sentinel"
 }
 
 module "tfstate-functions" {
-    source = "../../common-functions/tfstate-functions/tfstate-functions.sentinel"
+    source = "../../modules/tfstate-functions/tfstate-functions.sentinel"
 }
 
 module "tfconfig-functions" {
-    source = "../../common-functions/tfconfig-functions/tfconfig-functions.sentinel"
+    source = "../../modules/tfconfig-functions/tfconfig-functions.sentinel"
 }
 
-// module "general-functions" {
-//     source = "../../common-functions/general-functions/general-functions.sentinel"
-// }
+module "general-functions" {
+    source = "../../modules/general-functions/general-functions.sentinel"
+}
+
+module "evaluating-functions" {
+    source = "../../modules/evaluating-functions/evaluating-functions.sentinel"
+}
+
+module "filtering-functions" {
+    source = "../../modules/filtering-functions/filtering-functions.sentinel"
+}
 
 module "azure-functions" {
     source = "./azure-functions/azure-functions.sentinel"

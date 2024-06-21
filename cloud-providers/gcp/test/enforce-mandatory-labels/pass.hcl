@@ -1,17 +1,17 @@
 module "tfplan-functions" {
-  source = "../../../../common-functions/tfplan-functions/tfplan-functions.sentinel"
+  source = "../../../../modules/tfplan-functions/tfplan-functions.sentinel"
 }
 
 module "general-functions" {
-    source = "../../../../common-functions/general-functions/general-functions.sentinel"
+    source = "../../../../modules/general-functions/general-functions.sentinel"
 }
 
 module "evaluating-functions" {
-  source = "../../../../common-functions/evaluating-functions/evaluating-functions.sentinel"
+  source = "../../../../modules/evaluating-functions/evaluating-functions.sentinel"
 }
 
 module "filtering-functions" {
-  source = "../../../../common-functions/filtering-functions/filtering-functions.sentinel"
+  source = "../../../../modules/filtering-functions/filtering-functions.sentinel"
 }
 
 module "gcp-functions" {

@@ -1,0 +1,57 @@
+func evaluate_attribute(item, attribute, version) {
+  # Split the attribute into a list, using "." as the separator
+  attributes = strings.split(attribute, ".")
+
+  if attributes[0] is "config" {
+    config = item.config[attributes[1]] else {}
+    if "constant_value" in config {
+      # Found constant_value in config
+      return config.constant_value
+    } else if "references" in config {
+      # Found references in config
+      return config.references
+    } else {
+      # Did not find constant_value or references in config
+      return null
+    }
+  } else if attributes[0] matches "^[0-9]+$" {
+    a = int(attributes[0])
+    # Make sure item is of type list
+    if types.type_of(item) is not "list" {
+      return undefined
+    } else {
+      a = attributes[0]
+    }
+
+    # Append the current attribute to the resource instance
+    if (types.type_of(item) is "map" and "change" in keys(item)) {
+      if (types.type_of(item.change) is "map" and "after" in keys(item.change)) {
+        new_r = item.change.after[a] else null
+      } 
+    } else if (types.type_of(item) is "map" and "values" in keys(item)) {
+      if (types.type_of(item.values) is "map" and "module_address" in keys(item)) {
+        new_r = item.values[a] else null
+      } 
+    } else {
+      new_r = item[a] else null
+    }
+
+    # Process based on length of attributes
+    # being greater than or equal to 1
+    if length(attributes) > 1 {
+      # Strip first element from attributes
+      attributes = attributes[1:length(attributes)]
+      attribute = strings.join(attributes, ".")
+
+      # Make recursive call 
+      return evaluate_attribute(new_r, attribute, version)
+    } else {
+      # We reached the end of the attribute and can stop the
+      # recursive calls and return the value of the attribute
+      return new_r
+    }
+  } else {
+    # Return the original attribute or the item
+    return item[attribute]
+  } 
+}

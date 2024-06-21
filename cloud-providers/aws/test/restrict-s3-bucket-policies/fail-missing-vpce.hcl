@@ -1,13 +1,21 @@
 module "tfplan-functions" {
-  source = "../../../../common-functions/tfplan-functions/tfplan-functions.sentinel"
+  source = "../../../../modules/tfplan-functions/tfplan-functions.sentinel"
 }
 
 module "tfconfig-functions" {
-  source = "../../../../common-functions/tfconfig-functions/tfconfig-functions.sentinel"
+  source = "../../../../modules/tfconfig-functions/tfconfig-functions.sentinel"
 }
 
 module "general-functions" {
-  source = "../../../../common-functions/general-functions/general-functions.sentinel"
+  source = "../../../../modules/general-functions/general-functions.sentinel"
+}
+
+module "evaluating-functions" {
+  source = "../../../../modules/evaluating-functions/evaluating-functions.sentinel"
+}
+
+module "filtering-functions" {
+  source = "../../../../modules/filtering-functions/filtering-functions.sentinel"
 }
 
 mock "tfplan/v2" {

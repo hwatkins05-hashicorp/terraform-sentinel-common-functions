@@ -1,5 +1,5 @@
 module "tfrun-functions" {
-  source = "../../../../common-functions/tfrun-functions/tfrun-functions.sentinel"
+  source = "../../../../modules/tfrun-functions/tfrun-functions.sentinel"
 }
 
 mock "tfrun" {

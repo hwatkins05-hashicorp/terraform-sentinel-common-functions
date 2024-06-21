@@ -1,9 +1,17 @@
 module "tfstate-functions" {
-  source = "../../../../common-functions/tfstate-functions/tfstate-functions.sentinel"
+  source = "../../../../modules/tfstate-functions/tfstate-functions.sentinel"
 }
 
 module "general-functions" {
-  source = "../../../../common-functions/general-functions/general-functions.sentinel"
+  source = "../../../../modules/general-functions/general-functions.sentinel"
+}
+
+module "evaluating-functions" {
+  source = "../../../../modules/evaluating-functions/evaluating-functions.sentinel"
+}
+
+module "filtering-functions" {
+  source = "../../../../modules/filtering-functions/filtering-functions.sentinel"
 }
 
 mock "tfstate/v2" {
