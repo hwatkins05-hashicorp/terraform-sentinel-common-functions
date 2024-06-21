@@ -1,0 +1,137 @@
+import "general-functions" as general
+import "strings"
+import "types"
+
+### get_module_source ###
+# Get the module source from a module address
+# Note that the module_address in many collections in the tfplan/v2, tfconfig/v2,
+# and tfstate/v2 imports gives the labels used in the module blocks.
+# For instance, a module_address like "module.A.module.B" means that the current
+# item is in a module with label "B" that is a module with label "A". But that
+# does not give you the source the module labeled "B".
+# But if you want to limit creation of resources to specific modules based on
+# their source, you need the module source.  This function computes it.
+func get_module_source(module_address) {
+  # Check for root module
+  if module_address is "" {
+    return "root"
+  } else {
+    # Find parent module
+    module_segments = strings.split(module_address, ".")
+    num_segments = length(module_segments)
+    parent_module = strings.join(module_segments[0:num_segments-2], ".")
+    current_module_name = module_segments[num_segments-1]
+
+    # Find module call that called current module
+    if parent_module is "" {
+      # parent module is root module
+      mc = tfconfig.module_calls[current_module_name]
+    } else {
+      # parent module is not root module
+      mc = tfconfig.module_calls[parent_module + ":" + current_module_name]
+    }
+
+    # Set source from the module call
+    module_source = mc.source
+
+    return module_source
+  }
+}
+
+### get_ancestor_module_source ###
+# Get the module source of the first ancestor module from a module address that
+# is not a local module (one having source starting with "./" or "../").
+# Note that the module_address in many collections in the tfplan/v2, tfconfig/v2,
+# and tfstate/v2 imports gives the labels used in the module blocks.
+# For instance, a module_address like "module.A.module.B" means that the current
+# item is in a module with label "B" that is a module with label "A". But that
+# does not give you the source the module labeled "B".
+# But if you want to limit creation of resources to specific modules based on
+# their source, you need the module source.  This function computes it for
+# the first ancestor module that is not a local module.
+func get_ancestor_module_source(module_address) {
+  # Check for root module
+  if module_address is "" {
+    return "root"
+  } else {
+    # Find parent module
+    module_segments = strings.split(module_address, ".")
+    num_segments = length(module_segments)
+    parent_module = strings.join(module_segments[0:num_segments-2], ".")
+    current_module_name = module_segments[num_segments-1]
+
+    # Find module call that called current module
+    if parent_module is "" {
+      # parent module is root module
+      mc = tfconfig.module_calls[current_module_name]
+    } else {
+      # parent module is not root module
+      mc = tfconfig.module_calls[parent_module + ":" + current_module_name]
+    }
+
+    # Set source from the module call
+    module_source = mc.source
+
+    # Check to see if current module source is a nested module
+    if strings.has_prefix(module_source, "./") or strings.has_prefix(module_source, "../") {
+      return get_ancestor_module_source(parent_module)
+    } else {
+      return module_source
+    }
+  }
+}
+
+### get_parent_module_address ###
+# Get the address of the parent module of a module from the module address
+# return "root" if the given module_address is "" (the root module).
+func get_parent_module_address(module_address) {
+  # Check for root module
+  if module_address is "" {
+    return "root"
+  } else {
+    # Find parent module
+    module_segments = strings.split(module_address, ".")
+    num_segments = length(module_segments)
+    parent_module = strings.join(module_segments[0:num_segments-2], ".")
+    current_module_name = module_segments[num_segments-1]
+
+    return parent_module
+  }
+}
+
+### module_calls_in_module ###
+# Find all direct module calls made from a specific module
+# using the tfconfig/v2.
+# The parameter, module_address, should be "" for the root module,
+# "module.A" for a module A called by the root module,
+# "module.A.module.B" for module B called by module A called by the root module,
+# and so on.
+func config_module_calls_in_module(module_calls, module_address) {
+  return filter module_calls as address, mc {
+  	mc.module_address is module_address
+  }
+}
+
+### descendant_modules ###
+# Find addresses of all modules called directly or indirectly by a module.
+# The provided module address is included.
+# To find all module addresses, call descendant_modules("")
+# After calling this function against "", you can call module_calls_in_module
+# against any item in the list that is returned.
+func config_descendant_modules(module_address) {
+  module_addresses = [module_address]
+  mcs = config_module_calls_in_module(module_address)
+  
+  if length(mcs) > 0 {
+    for mcs as ma, mc {
+      if mc.module_address is "" {
+        new_module_address = "module." + mc.name
+      } else {
+        new_module_address = mc.module_address + ".module." + mc.name
+      }
+      module_addresses += config_descendant_modules(new_module_address)
+    }
+  }
+
+  return module_addresses
+}

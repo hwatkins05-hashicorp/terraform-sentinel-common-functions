@@ -1,0 +1,283 @@
+##### Imports #####
+import "general-functions" as general
+import "strings"
+import "types"
+
+##### Functions #####
+
+### all_resources ###
+# Find all resources of all types using the tfconfig/v2.
+func config_all_resources(resources) {
+  return filter resources as address, r {
+  	r.mode is "managed"
+  }
+}
+
+### resources_by_type ###
+# Find all resources of a specific type using the tfconfig/v2.
+# The parameter, type, should be a string like "aws_instance".
+func config_resources_by_type(resources, type) {
+  return filter resources as address, r {
+  	r.type is type and
+  	r.mode is "managed"
+  }
+}
+
+# TODO: Not used.
+### resources_in_module ###
+# Find all resources from a specific module using the tfconfig/v2.
+func config_resources_in_module(resources, module_address) {
+  return filter resources as address, r {
+  	r.module_address is module_address and
+  	r.mode is "managed"
+  }
+}
+
+### resources_by_provider ###
+# Find all resources from a specific provider using the tfconfig/v2.
+# The parameter, provider, should be given as a string such as "aws".
+func config_resources_by_provider(resources, provider) {
+  return filter resources as address, r {
+  	r.provider_config_key matches "(.*:)?" + provider + "(\\..*)?" and
+  	r.mode is "managed"
+  }
+}
+
+# TODO: Not used.
+### resources_by_provider ###
+# Find all resources for a specific provider using the tfplan/v2 import.
+# Include resources that are not being permanently deleted.
+# Technically, this returns a map of resource changes.
+# Terraform 0.12 and earlier set `rc.provider_name` to short text like "null";
+# but Terraform 0.13 and higher set it to something like
+# "registry.terraform.io/hashicorp/null".
+# You can pass in the long form or short form.
+func plan_resources_by_provider(resource_changes, provider) {
+  segment_count = length(strings.split(provider, "/"))
+
+  # v_major must be higher than 12 since v2 imports being used
+  # So, we know long form like "registry.terraform.io/hashicorp/null" given
+  if segment_count is 1 {
+    # Function was passed short form, so we want to reduce each occurence of
+    # rc.provider_name to its short form.
+    resources = filter resource_changes as address, rc {
+      strings.split(rc.provider_name, "/")[2] is provider and
+      rc.mode is "managed" and
+      type_helper(rc)
+    }
+  } else {
+    # Function was passed long form, so we use full rc.provider_name
+    resources = filter resource_changes as address, rc {
+      rc.provider_name is provider and
+      rc.mode is "managed" and
+      type_helper(rc)
+    }
+  } // end segment_count
+
+  return resources
+}
+
+# TODO: Not used.
+### resources_by_provider ###
+# Find all resources for a specific provider using the tfstate/v2 import.
+# Terraform 0.12 and earlier set `r.provider_name` to short text like "null";
+# but Terraform 0.13 and higher set it to something like
+# "registry.terraform.io/hashicorp/null".
+# You can pass in the long form or short form.
+func state_resources_by_provider(resources, provider) {
+  segment_count = length(strings.split(provider, "/"))
+
+  # v_major must be higher than 12 since v2 imports being used
+  # So, we know long form like "registry.terraform.io/hashicorp/null" given
+  if segment_count is 1 {
+    # Function was passed short form, so we want to reduce each occurence of
+    # r.provider_name to its short form.
+    resources = filter resources as address, r {
+      strings.split(r.provider_name, "/")[2] is provider and
+      r.mode is "managed"
+    }
+  } else {
+    # Function was passed long form, so we use full r.provider_name
+    resources = filter resources as address, r {
+      r.provider_name is provider and
+      r.mode is "managed"
+    }
+  } // end segment_count
+
+  return resources
+}
+
+### all_datasources ###
+# Find all data sources of all types using the tfconfig/v2.
+func config_all_datasources(resources) {
+  return filter resources as address, d {
+  	d.mode is "data"
+  }
+}
+
+# TODO: Not used.
+### datasources_by_type ###
+# Find all data sources of a specific type using the tfconfig/v2.
+# The parameter, type, should be a string like "aws_ami".
+func config_datasources_by_type(resources, type) {
+  return filter resources as address, d {
+  	d.type is type and
+  	d.mode is "data"
+  }
+}
+
+# TODO: Not used.
+### datasources_in_module ###
+# Find all data sources from a specific module using the tfconfig/v2.
+func config_datasources_in_module(resources, module_address) {
+  return filter resources as address, d {
+  	d.module_address is module_address and
+  	d.mode is "data"
+  }
+}
+
+### datasources_by_provider ###
+# Find all data sources from a specific provider using the tfconfig/v2.
+# The parameter, provider, should be given as a string such as "aws".
+func config_datasources_by_provider(resources, provider) {
+  return filter resources as address, d {
+  	d.provider_config_key matches "(.*:)?" + provider + "(\\..*)?" and
+  	d.mode is "data"
+  }
+}
+
+# TODO: Not used.
+### datasources_by_provider ###
+# Find all data sources for a specific provider using the tfplan/v2 import.
+# Include data sources that are not being permanently deleted.
+# Technically, this returns a map of resource changes.
+# Terraform 0.12 and earlier set `rc.provider_name` to short text like "null";
+# but Terraform 0.13 and higher set it to something like
+# "registry.terraform.io/hashicorp/null".
+# You can pass in the long form or short form.
+func plan_datasources_by_provider(resource_changes, provider) {
+  segment_count = length(strings.split(provider, "/"))
+
+  # v_major must be higher than 12 since v2 imports being used
+  # So, we know long form like "registry.terraform.io/hashicorp/null" given
+  if segment_count is 1 {
+    # Function was passed short form, so we want to reduce each occurence of
+    # rc.provider_name to its short form.
+    datasources = filter resource_changes as address, rc {
+      strings.split(rc.provider_name, "/")[2] is provider and
+      rc.mode is "data" and
+      type_helper(rc)
+    }
+  } else {
+    # Function was passed long form, so we use full rc.provider_name
+    datasources = filter resource_changes as address, rc {
+      rc.provider_name is provider and
+      rc.mode is "data" and
+      type_helper(rc)
+    }
+  } // end segment_count
+
+  return datasources
+}
+
+# TODO: Not used.
+### datasources_by_provider ###
+# Find all data sources for a specific provider using the tfstate/v2 import.
+# Terraform 0.12 and earlier set `r.provider_name` to short text like "null";
+# but Terraform 0.13 and higher set it to something like
+# "registry.terraform.io/hashicorp/null".
+# You can pass in the long form or short form.
+func state_datasources_by_provider(resources, provider) {
+  segment_count = length(strings.split(provider, "/"))
+
+  # v_major must be higher than 12 since v2 imports being used
+  # So, we know long form like "registry.terraform.io/hashicorp/null" given
+  if segment_count is 1 {
+    # Function was passed short form, so we want to reduce each occurence of
+    # r.provider_name to its short form.
+    datasources = filter resources as address, r {
+      strings.split(r.provider_name, "/")[2] is provider and
+      r.mode is "data"
+    }
+  } else {
+    # Function was passed long form, so we use full r.provider_name
+    datasources = filter resources as address, r {
+      r.provider_name is provider and
+      r.mode is "data"
+    }
+  } // end segment_count
+
+  return datasources
+}
+
+### resources ###
+# Find all resources of a specific type using the tfplan/v2 import.
+# Include resources that are not being permanently deleted.
+# Technically, this returns a map of resource changes.
+func plan_resources(resource_changes, type) {
+  return filter resource_changes as address, rc {
+  	rc.type is type and
+  	rc.mode is "managed" and
+  	type_helper(rc)
+  }
+}
+
+### resources ###
+# Find all resources of a specific type using the tfstate/v2 import.
+func state_resources(resources, type) {
+  return filter resources as address, r {
+  	r.type is type and
+  	r.mode is "managed"
+  }
+}
+
+### datasources ###
+# Find all data sources of a specific type using the tfplan/v2 import.
+# Include data sources that are not being permanently deleted.
+# Technically, this returns a map of resource changes.
+func plan_datasources(resource_changes, type) {
+  return filter resource_changes as address, rc {
+  	rc.type is type and
+  	rc.mode is "data" and
+  	type_helper(rc)
+  }
+}
+
+### datasources ###
+# Find all data sources of a specific type using the tfstate/v2 import.
+func state_datasources(resources, type) {
+  return filter resources as address, d {
+  	d.type is type and
+  	d.mode is "data"
+  }
+}
+
+### type_helper ###
+func plan_type_helper(rc) {
+   return (rc.change.actions contains "create" or rc.change.actions contains "update" or
+     rc.change.actions contains "read" or (rc.change.actions contains "no-op" and
+     rc.change.after is not null))
+}
+
+### resources_being_destroyed ###
+# Find all resources being destroyed but not recreated using the tfplan/v2 import.
+# Technically, this returns a map of resource changes.
+func plan_resources_being_destroyed(resource_changes) {
+  return filter resource_changes as address, rc {
+  	rc.mode is "managed" and
+  	rc.change.actions contains "delete" and
+    not (rc.change.actions contains "create" or rc.change.actions contains "update")
+  }
+}
+
+# TODO: Not used.
+### datasources_being_destroyed ###
+# Find all data sources being destroyed but not recreated using the tfplan/v2 import.
+# Technically, this returns a map of resource changes.
+func plan_datasources_being_destroyed(resource_changes) {
+  return filter resource_changes as address, rc {
+  	rc.mode is "data" and
+    rc.change.actions contains "delete" and
+  	not (rc.change.actions contains "create" or rc.change.actions contains "update")
+  }
+}

@@ -1,0 +1,104 @@
+## This file contains provisioners, providers, variables, outputs, and blocks, all of which have no more than two functions.
+
+### provisioners_by_type ###
+# Find all provisioners of a specific type using the tfconfig/v2.
+# The parameter, type, should be a string like "local_exec".
+func config_provisioners_by_type(provisioners, type) {
+  return filter provisioners as address, p {
+  	p.type is type
+  }
+}
+
+### providers_by_type ###
+# Find all providers of a specific type using the tfconfig/v2.
+# The parameter, provider, should be given as a string such as "aws".
+func config_providers_by_type(providers, type) {
+  return filter providers as address, p {
+  	p.provider_config_key matches "(.*:)?" + type + "(\\..*)?"
+  }
+}
+
+# TODO: Not used.
+### providers_in_module ###
+# Find all providers from a specific module using the tfconfig/v2.
+func config_providers_in_module(providers, module_address) {
+  return filter providers as address, p {
+  	p.module_address is module_address
+  }
+}
+
+# TODO: Not used.
+### variables_in_module ###
+# Find all variables from a specific module using the tfconfig/v2.
+func config_variables_in_module(variables, module_address) {
+  return filter variables as address, v {
+  	v.module_address is module_address
+  }
+}
+
+# TODO: Not used.
+### outputs_in_module ###
+# Find all providers from a specific module using the tfconfig/v2.
+func config_outputs_in_module(outputs, module_address) {
+  return filter outputs as address, o {
+  	o.module_address is module_address
+  }
+}
+
+# TODO: Not used.
+### outputs_by_sensitivity ###
+# Find all providers of specific sensitivity using the tfconfig/v2.
+# The parameter, sensitive, should be true or false (without quotes)
+func config_outputs_by_sensitivity(outputs, sensitive) {
+  return filter outputs as address, o {
+  	o.sensitive is sensitive
+  }
+}
+
+### blocks ###
+# Find all blocks of a specific type from a resource using the tfplan/v2 import.
+# parent should be a single resource or block of a resource or a data source
+# or a block of a data source.
+# If parent is a resource, you can pass it in the form rc.change.after or just rc.
+# child should be a string representing a block of parent
+# that contains a list of objects.
+func plan_blocks(parent, child) {
+  # Use parent.change.after if it exists
+  if (types.type_of(parent) is "map" and "change" in keys(parent)) and (types.type_of(parent.change) is "map" and "after" in keys(parent.change)) {
+    if types.type_of(parent.change.after[child] else null) is "list" {
+      return parent.change.after[child]
+    } else {
+      return []
+    }
+  } else {
+    if types.type_of(parent[child] else null) is "list" {
+  	  return parent[child]
+    } else {
+      return []
+    }
+  }
+}
+
+### blocks ###
+# Find all blocks of a specific type from a resource using the tfstate/v2 import.
+# parent should be a single resource or block of a resource or a data source
+# or block of a data source.
+# If parent is a resource, you can pass it in the form r.values or just r.
+# child should be a string representing a block of parent
+# that contains a list of objects.
+func state_blocks(parent, child) {
+  # Use parent.values if it exists
+  if (types.type_of(parent) is "map" and "values" in keys(parent)) and types.type_of(parent.values) is "map" {
+    if types.type_of(parent.values[child] else null) is "list" {
+      return parent.values[child]
+    } else {
+      return []
+    }
+  } else {
+    if types.type_of(parent[child] else null) is "list" {
+      return parent[child]
+    } else {
+      return []
+    }
+  }
+}
