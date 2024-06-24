@@ -1,3 +1,7 @@
+import "general-functions" as general
+import "strings"
+import "types"
+
 ## This file contains provisioners, providers, variables, outputs, and blocks, all of which have no more than two functions.
 
 ### provisioners_by_type ###
@@ -62,7 +66,7 @@ func config_outputs_by_sensitivity(outputs, sensitive) {
 # If parent is a resource, you can pass it in the form rc.change.after or just rc.
 # child should be a string representing a block of parent
 # that contains a list of objects.
-func plan_blocks(parent, child) {
+func blocks(parent, child) {
   # Use parent.change.after if it exists
   if (types.type_of(parent) is "map" and "change" in keys(parent)) and (types.type_of(parent.change) is "map" and "after" in keys(parent.change)) {
     if types.type_of(parent.change.after[child] else null) is "list" {
@@ -70,25 +74,7 @@ func plan_blocks(parent, child) {
     } else {
       return []
     }
-  } else {
-    if types.type_of(parent[child] else null) is "list" {
-  	  return parent[child]
-    } else {
-      return []
-    }
-  }
-}
-
-### blocks ###
-# Find all blocks of a specific type from a resource using the tfstate/v2 import.
-# parent should be a single resource or block of a resource or a data source
-# or block of a data source.
-# If parent is a resource, you can pass it in the form r.values or just r.
-# child should be a string representing a block of parent
-# that contains a list of objects.
-func state_blocks(parent, child) {
-  # Use parent.values if it exists
-  if (types.type_of(parent) is "map" and "values" in keys(parent)) and types.type_of(parent.values) is "map" {
+  } else if (types.type_of(parent) is "map" and "values" in keys(parent)) and types.type_of(parent.values) is "map" {
     if types.type_of(parent.values[child] else null) is "list" {
       return parent.values[child]
     } else {
@@ -96,7 +82,7 @@ func state_blocks(parent, child) {
     }
   } else {
     if types.type_of(parent[child] else null) is "list" {
-      return parent[child]
+  	  return parent[child]
     } else {
       return []
     }
