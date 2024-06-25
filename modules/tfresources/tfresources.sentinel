@@ -63,14 +63,14 @@ func plan_resources_by_provider(resource_changes, provider) {
     resources = filter resource_changes as address, rc {
       strings.split(rc.provider_name, "/")[2] is provider and
       rc.mode is "managed" and
-      type_helper(rc)
+      plan_type_helper(rc)
     }
   } else {
     # Function was passed long form, so we use full rc.provider_name
     resources = filter resource_changes as address, rc {
       rc.provider_name is provider and
       rc.mode is "managed" and
-      type_helper(rc)
+      plan_type_helper(rc)
     }
   } // end segment_count
 
@@ -166,14 +166,14 @@ func plan_datasources_by_provider(resource_changes, provider) {
     datasources = filter resource_changes as address, rc {
       strings.split(rc.provider_name, "/")[2] is provider and
       rc.mode is "data" and
-      type_helper(rc)
+      plan_type_helper(rc)
     }
   } else {
     # Function was passed long form, so we use full rc.provider_name
     datasources = filter resource_changes as address, rc {
       rc.provider_name is provider and
       rc.mode is "data" and
-      type_helper(rc)
+      plan_type_helper(rc)
     }
   } // end segment_count
 
@@ -218,7 +218,7 @@ func plan_resources(resource_changes, type) {
   return filter resource_changes as address, rc {
   	rc.type is type and
   	rc.mode is "managed" and
-  	type_helper(rc)
+  	plan_type_helper(rc)
   }
 }
 
@@ -239,7 +239,7 @@ func plan_datasources(resource_changes, type) {
   return filter resource_changes as address, rc {
   	rc.type is type and
   	rc.mode is "data" and
-  	type_helper(rc)
+  	plan_type_helper(rc)
   }
 }
 
